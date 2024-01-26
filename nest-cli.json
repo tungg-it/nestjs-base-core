@@ -4,7 +4,8 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "webpack": true
+    "webpack": true,
+    "assets": [{ "include": "i18n/**/*", "watchAssets": true }]
   },
   "projects": {
     "database": {
