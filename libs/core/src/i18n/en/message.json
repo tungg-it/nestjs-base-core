@@ -2,12 +2,19 @@
   "hello": "Hello API!",
   "errors": {
     "server_error": "Internal server error",
+    "bad_gateway": "Bad gateway",
+    "service_unavailable": "Service unavailable",
+    "gateway_timeout": "Gateway timeout",
     "not_found": "Resource not found",
     "bad_request": "Bad request",
     "forbidden": "Forbidden",
     "unauthorized": "Unauthorized",
     "not_allowed": "Method not allowed",
     "request_timeout": "Request timeout",
+    "conflict": "Conflict",
+    "unprocessable_entity": "Unprocessable entity",
+    "precondition_required": "Precondition required",
+    "too_many_requests": "Too many requests",
     "object_not_found": "Object not found",
     "object_existed": "Object already exists"
   }

@@ -20,6 +20,7 @@ const format =
   '[:method] HOST::remote-addr PATH::url CODE::status +:response-time ms';
 
 // Create morgan middleware
+// eslint-disable-next-line
 const morganMiddleware = morgan(format, { stream, skip });
 
 export default morganMiddleware;

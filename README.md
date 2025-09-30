@@ -193,6 +193,7 @@ export class ItemsController {
       const i18n = I18nContext.current();
       const message = i18n.t('message.errors.object_not_found');
       throw new HttpException(message, HttpStatus.NOT_FOUND);
+      // or throw new NotFoundException(message)
     }
     return item;
   }

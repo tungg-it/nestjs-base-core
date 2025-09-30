@@ -1,5 +1,5 @@
 import 'source-map-support/register';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger, Type, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
@@ -12,8 +12,10 @@ import { ResponseInterceptor } from './response';
 export interface AppOptions {
   appName: string;
 }
-
-export const startApp = async (AppModule: any, options: AppOptions) => {
+export const startApp = async (
+  AppModule: Type<unknown>,
+  options: AppOptions,
+) => {
   const { appName } = options;
   const logger = new Logger(appName);
 
@@ -40,7 +42,7 @@ export const startApp = async (AppModule: any, options: AppOptions) => {
 
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalInterceptors(new TimeoutInterceptor());
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new HttpExceptionFilter(config));
 
   // Config for development
   if (environment === 'development') {
