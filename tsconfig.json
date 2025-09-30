@@ -17,11 +17,13 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "esModuleInterop": true,
     "paths": {
-      "@config/*": ["src/config/*"],
-      "@common/middlewares/*": ["src/common/middlewares/*"],
-      "@libs/database": ["libs/database/src"],
-      "@libs/database/*": ["libs/database/src/*"]
+      "@apps/api/*": ["apps/api/src/*"],
+      "@libs/core": ["libs/core/src"],
+      "@libs/core/*": ["libs/core/src/*"],
+      "@libs/util": ["libs/util/src"],
+      "@libs/util/*": ["libs/util/src/*"]
     }
   }
 }

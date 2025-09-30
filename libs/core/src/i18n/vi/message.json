@@ -1,0 +1,14 @@
+{
+  "hello": "Xin chào API!",
+  "errors": {
+    "server_error": "Lỗi máy chủ nội bộ",
+    "not_found": "Không tìm thấy tài nguyên",
+    "bad_request": "Yêu cầu không hợp lệ",
+    "forbidden": "Không có quyền truy cập",
+    "unauthorized": "Chưa được xác thực",
+    "not_allowed": "Phương thức không được phép",
+    "request_timeout": "Hết thời gian yêu cầu",
+    "object_not_found": "Không tìm thấy đối tượng",
+    "object_existed": "Đối tượng đã tồn tại"
+  }
+}

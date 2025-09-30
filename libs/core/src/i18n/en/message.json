@@ -1,0 +1,14 @@
+{
+  "hello": "Hello API!",
+  "errors": {
+    "server_error": "Internal server error",
+    "not_found": "Resource not found",
+    "bad_request": "Bad request",
+    "forbidden": "Forbidden",
+    "unauthorized": "Unauthorized",
+    "not_allowed": "Method not allowed",
+    "request_timeout": "Request timeout",
+    "object_not_found": "Object not found",
+    "object_existed": "Object already exists"
+  }
+}
