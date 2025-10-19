@@ -17,7 +17,7 @@ export const startApp = async (
   AppModule: Type<unknown>,
   options: AppOptions,
 ) => {
-  const { appName, exposePort } = options;
+  const { appName, exposePort = true } = options;
   const logger = new Logger(appName);
 
   const app = await NestFactory.create(AppModule);

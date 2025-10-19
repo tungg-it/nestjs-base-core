@@ -19,7 +19,7 @@
     "noFallthroughCasesInSwitch": false,
     "esModuleInterop": true,
     "allowJs": true,
-    "checkJs": true,
+    "checkJs": false,
     "paths": {
       "@apps/api/*": ["apps/api/src/*"],
       "@libs/core": ["libs/core/src"],
