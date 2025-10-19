@@ -18,6 +18,8 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "esModuleInterop": true,
+    "allowJs": true,
+    "checkJs": true,
     "paths": {
       "@apps/api/*": ["apps/api/src/*"],
       "@libs/core": ["libs/core/src"],
