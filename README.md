@@ -65,6 +65,9 @@ $ pnpm gen:app <app-name>
 
 # example: create an "auth" app
 $ pnpm gen:app auth
+
+# example: create an "payment-gateway" app
+$ pnpm gen:app payment-gateway
 ```
 
 ## Generate a new module

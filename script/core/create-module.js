@@ -59,7 +59,7 @@ function writeFileIfNotExists(filePath, content) {
 }
 
 function main() {
-  const repoRoot = path.resolve(__dirname, '..');
+  const repoRoot = path.resolve(__dirname, '../../');
   const app = process.argv[2];
   const mod = process.argv[3];
   if (!app || !mod) exitWithUsage('Missing <app> or <module>.');

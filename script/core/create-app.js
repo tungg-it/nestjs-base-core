@@ -49,9 +49,9 @@ function writeJson(filePath, data) {
 }
 
 function main() {
-  const repoRoot = path.resolve(__dirname, '..');
+  const repoRoot = path.resolve(__dirname, '../../');
   const appName = process.argv[2];
-  if (!appName) exitWithUsage('Missing <app-name>.');
+  if (!appName) exitWithUsage('❌ Missing <app-name>.');
 
   const safeName = appName.trim();
   assert(
@@ -60,10 +60,11 @@ function main() {
   );
 
   const apiAppDir = path.join(repoRoot, 'apps', 'api');
+  console.log(apiAppDir);
   const newAppDir = path.join(repoRoot, 'apps', safeName);
-  assert(fs.existsSync(apiAppDir), 'Base app apps/api not found.');
+  assert(fs.existsSync(apiAppDir), '❌ Base app apps/api not found.');
   if (fs.existsSync(newAppDir)) {
-    console.log(`App already exists: apps/${safeName} (skipping creation)`);
+    console.log(`❌ App already exists: apps/${safeName} (skipping creation)`);
     process.exit(0);
   }
 
