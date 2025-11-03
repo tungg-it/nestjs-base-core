@@ -1,3 +1,5 @@
+// eslint.config.mjs
+// @ts-check
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
@@ -31,7 +33,7 @@ const baseConfig = tseslint.config(
   },
   {
     files: ['**/*.js'],
-    languageOptions: { parser: null },
+    languageOptions: { parser: undefined },
     rules: {
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
