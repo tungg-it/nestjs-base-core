@@ -2,11 +2,11 @@ import morgan from 'morgan';
 import { Logger } from '@nestjs/common';
 import configuration from '@libs/core/config';
 
-const logger = new Logger('REQUEST');
+const logger = new Logger('HTTP');
 
 // Create listen stream
 const stream = {
-  write: (message) => logger.log(message),
+  write: (message: string) => logger.log(message.replace(/\n$/, '').trim()),
 };
 
 // Support fo development config
