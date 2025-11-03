@@ -1,9 +1,8 @@
-// eslint.config.mjs
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 
-export default tseslint.config(
+const baseConfig = tseslint.config(
   {
     ignores: ['dist/**', 'node_modules/**'],
   },
@@ -25,12 +24,20 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'error',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-        },
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
       '@typescript-eslint/no-unsafe-assignment': 'off',
     },
   },
+  {
+    files: ['**/*.js'],
+    languageOptions: { parser: null },
+    rules: {
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-var-requires': 'error',
+    },
+  },
 );
+
+export default baseConfig;
