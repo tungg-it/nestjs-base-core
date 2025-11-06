@@ -9,10 +9,10 @@ const stream = {
   write: (message: string) => logger.log(message.replace(/\n$/, '').trim()),
 };
 
-// Support fo development config
+// Support for development config
 const skip = () => {
-  const env = configuration().environment || 'development';
-  return env !== 'development';
+  const env = configuration().environment || 'production';
+  return env === 'production';
 };
 
 // Define format

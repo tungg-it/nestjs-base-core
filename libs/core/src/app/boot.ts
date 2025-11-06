@@ -59,7 +59,7 @@ export const startApp = async (
     app.useGlobalFilters(new HttpExceptionFilter(config));
 
     // Config for development
-    if (environment === 'development') {
+    if (environment !== 'production') {
       // Morgan config
       app.use(morganMiddleware);
 
@@ -94,9 +94,12 @@ export const startApp = async (
     logger.log(
       `Service ${appName} HTTP is running on http://localhost:${port}/${prefix}`,
     );
-    logger.log(
-      `API Document service ${appName}: http://localhost:${port}/${prefix}/${apiDocument}`,
-    );
+
+    if (environment !== 'production')
+      logger.log(
+        `API Document service ${appName}: http://localhost:${port}/${prefix}/${apiDocument}`,
+      );
+
     logger.log(`Environment: ${environment}`);
   } else {
     await app.init();
