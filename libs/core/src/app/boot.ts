@@ -1,4 +1,3 @@
-import 'source-map-support/register';
 import { Logger, Type, ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestFactory } from '@nestjs/core';

@@ -56,6 +56,78 @@ $ pnpm dev
 $ pnpm build
 ```
 
+## Docker
+
+### Prerequisites
+
+- Docker and Docker Compose installed on your system
+- `.env` file configured (based on `.env.example`)
+
+### Using Docker Compose
+
+**1. Build and start the application:**
+
+```bash
+$ docker-compose -f up -d
+```
+
+**2. View logs:**
+
+```bash
+$ docker-compose logs -f api
+```
+
+**3. Stop the application:**
+
+```bash
+$ docker-compose down
+```
+
+**4. Rebuild the image:**
+
+```bash
+$ docker-compose build --no-cache
+```
+
+**5. Restart the service:**
+
+```bash
+$ docker-compose restart api
+```
+
+The API service will be available at `http://localhost:8080`.
+
+### Using Docker directly
+
+**1. Build the image:**
+
+```bash
+$ docker build -f apps/api/Dockerfile -t nestjs-base-api .
+```
+
+**2. Run the container:**
+
+```bash
+$ docker run -d \
+  --name nestjs-base-api \
+  -p 8080:8080 \
+  --env-file .env \
+  nestjs-base-api
+```
+
+**3. View logs:**
+
+```bash
+$ docker logs -f nestjs-base-api
+```
+
+**4. Stop and remove the container:**
+
+```bash
+$ docker stop nestjs-base-api
+$ docker rm nestjs-base-api
+```
+
 ## Generate a new service (app)
 
 Create a minimal app

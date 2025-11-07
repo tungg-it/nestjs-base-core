@@ -1,9 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { I18n, I18nContext } from 'nestjs-i18n';
 
 @ApiExcludeController()
-@Controller()
+@Controller({
+  version: VERSION_NEUTRAL,
+})
 export class DefaultRouteController {
   @Get('health-check')
   async getHello(@I18n() i18n: I18nContext): Promise<string> {

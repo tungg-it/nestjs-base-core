@@ -1,0 +1,67 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build output (will be built in container)
+dist
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Documentation
+README.md
+*.md
+
+# Tests
+coverage
+*.test.ts
+*.spec.ts
+test
+tests
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Scripts
+script
+
+# Config files không cần thiết
+.eslintrc*
+.prettierrc*
+jest.config.*
+tsconfig.*.json
+
+# Temporary files
+*.tmp
+*.temp
+
