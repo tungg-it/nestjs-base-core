@@ -7,6 +7,7 @@ import morganMiddleware from '../middleware/morgan.middleware';
 import { HttpExceptionFilter } from '@libs/core/exception';
 import { I18nValidationPipe } from 'nestjs-i18n';
 import { ResponseInterceptor } from './response';
+import { convertToCamelCase } from '@libs/util';
 
 export interface AppOptions {
   appName: string;
@@ -21,9 +22,11 @@ export const startApp = async (
 
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
-  const port = config.get<number>(appName.toLowerCase() + 'Port');
+  const port = config.get<number>(convertToCamelCase(appName) + 'Port');
   const environment = config.get<string>('environment');
-  const apiDocument = config.get<string>('apiDocument');
+  const apiDocument = config.get<string>(
+    convertToCamelCase(appName) + 'Document',
+  );
   const prefix = `${appName === 'api' ? appName : appName + '/api'}`;
 
   if (exposePort) {
