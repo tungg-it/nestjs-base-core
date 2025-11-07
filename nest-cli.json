@@ -5,6 +5,11 @@
   "compilerOptions": {
     "deleteOutDir": true,
     "webpack": true,
+    "plugins": [
+      {
+        "name": "@nestjs/swagger/plugin"
+      }
+    ],
     "assets": [
       {
         "include": "i18n/**/*",
