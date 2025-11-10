@@ -40,6 +40,9 @@ RUN pnpm install --prod --frozen-lockfile && \
 # Copy built application
 COPY --from=builder /app/dist ./dist
 
+# Copy i18n files (required for nestjs-i18n at runtime)
+COPY --from=builder /app/libs/core/src/i18n ./libs/core/src/i18n
+
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001 && \

@@ -65,3 +65,7 @@ tsconfig.*.json
 *.tmp
 *.temp
 
+# cspell
+cspell-dict.txt
+cspell.yaml
+
