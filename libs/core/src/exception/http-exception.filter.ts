@@ -25,7 +25,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       this.logger.error(exception?.stack || exception?.message || exception);
     }
 
-    // lấy response object từ exception
+    // get response object from exception
     const res = exception.getResponse() as
       | string
       | {
@@ -33,8 +33,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
           cause?: string;
           data?: unknown;
         };
-
-    // kiểm tra status
+    // check status
     const status =
       // eslint-disable-next-line
       typeof (exception as HttpException).getStatus === 'function'
@@ -51,20 +50,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
         503: 'service_unavailable',
         504: 'gateway_timeout',
       };
-      const messageKey = messageKeyByStatus[status] || 'server_error';
-      const translatedMessage =
-        i18n?.t(`message.errors.${messageKey}`) ?? messageKey;
 
+      const messageKey = messageKeyByStatus[status] || 'server_error';
       return response.status(status).json({
         statusCode: status,
-        message: translatedMessage,
+        message: messageKey,
         data: null,
+        cause,
         timestamp: new Date().toISOString(),
         path: request.url,
       });
     }
 
-    // lấy message key từ response
+    // get message key from response
     let messageKey: string | undefined;
 
     if (typeof res === 'string') {
@@ -93,16 +91,29 @@ export class HttpExceptionFilter implements ExceptionFilter {
       messageKey = 'not_found';
     }
 
+    // Get original message from exception
+    const originalMessage =
+      typeof res === 'string'
+        ? res
+        : typeof res === 'object' && res?.message
+          ? Array.isArray(res.message)
+            ? res.message[0]
+            : res.message
+          : exception.message;
+
+    // Try to translate, if no i18n key then use original message
+    const i18nKey = `message.errors.${messageKey}`;
+    const translated = i18n?.t(i18nKey);
     const translatedMessage =
-      i18n?.t(`message.errors.${messageKey}`) ??
-      (typeof res === 'object' ? res?.message : undefined) ??
-      messageKey;
+      translated && translated !== i18nKey ? translated : originalMessage;
 
     return response.status(status).json({
       code: status,
       message: translatedMessage,
       data: typeof res === 'object' ? (res?.data ?? null) : null,
       cause,
+      timestamp: new Date().toISOString(),
+      path: request.url,
     });
   }
 }

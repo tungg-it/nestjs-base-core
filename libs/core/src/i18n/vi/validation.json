@@ -1,55 +1,53 @@
 {
-  "validation": {
-    "required": "{property} là bắt buộc",
-    "string": {
-      "base": "{property} phải là chuỗi",
-      "min": "{property} phải có ít nhất {min} ký tự",
-      "max": "{property} phải có nhiều nhất {max} ký tự",
-      "length": "{property} phải có đúng {length} ký tự",
-      "email": "{property} phải là email hợp lệ",
-      "url": "{property} phải là URL hợp lệ",
-      "uuid": "{property} phải là UUID hợp lệ",
-      "regex": "Định dạng {property} không hợp lệ"
-    },
-    "number": {
-      "base": "{property} phải là số",
-      "integer": "{property} phải là số nguyên",
-      "min": "{property} phải lớn hơn hoặc bằng {min}",
-      "max": "{property} phải nhỏ hơn hoặc bằng {max}"
-    },
-    "boolean": {
-      "base": "{property} phải là giá trị boolean"
-    },
-    "date": {
-      "base": "{property} phải là ngày hợp lệ",
-      "min": "{property} phải sau {min}",
-      "max": "{property} phải trước {max}"
-    },
-    "array": {
-      "base": "{property} phải là mảng",
-      "min": "{property} phải có ít nhất {min} phần tử",
-      "max": "{property} phải có nhiều nhất {max} phần tử",
-      "unique": "{property} phải chứa các phần tử duy nhất"
-    },
-    "object": {
-      "base": "{property} phải là đối tượng",
-      "unknown": "{property} có các khóa không xác định"
-    },
-    "enum": {
-      "oneOf": "{property} phải là một trong: {values}"
-    },
-    "comparison": {
-      "gt": "{property} phải lớn hơn {other}",
-      "gte": "{property} phải lớn hơn hoặc bằng {other}",
-      "lt": "{property} phải nhỏ hơn {other}",
-      "lte": "{property} phải nhỏ hơn hoặc bằng {other}",
-      "eq": "{property} phải bằng {other}",
-      "ne": "{property} không được bằng {other}"
-    },
-    "special": {
-      "password_strength": "{property} phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt",
-      "not_empty": "{property} không được để trống",
-      "distinct": "{property} phải là duy nhất"
-    }
+  "required": "{property} là bắt buộc",
+  "string": {
+    "base": "{property} phải là chuỗi",
+    "min": "{property} phải có ít nhất {min} ký tự",
+    "max": "{property} phải có nhiều nhất {max} ký tự",
+    "length": "{property} phải có đúng {length} ký tự",
+    "email": "{property} phải là email hợp lệ",
+    "url": "{property} phải là URL hợp lệ",
+    "uuid": "{property} phải là UUID hợp lệ",
+    "regex": "Định dạng {property} không hợp lệ"
+  },
+  "number": {
+    "base": "{property} phải là số",
+    "integer": "{property} phải là số nguyên",
+    "min": "{property} phải lớn hơn hoặc bằng {min}",
+    "max": "{property} phải nhỏ hơn hoặc bằng {max}"
+  },
+  "boolean": {
+    "base": "{property} phải là giá trị boolean"
+  },
+  "date": {
+    "base": "{property} phải là ngày hợp lệ",
+    "min": "{property} phải sau {min}",
+    "max": "{property} phải trước {max}"
+  },
+  "array": {
+    "base": "{property} phải là mảng",
+    "min": "{property} phải có ít nhất {min} phần tử",
+    "max": "{property} phải có nhiều nhất {max} phần tử",
+    "unique": "{property} phải chứa các phần tử duy nhất"
+  },
+  "object": {
+    "base": "{property} phải là đối tượng",
+    "unknown": "{property} có các khóa không xác định"
+  },
+  "enum": {
+    "oneOf": "{property} phải là một trong: {values}"
+  },
+  "comparison": {
+    "gt": "{property} phải lớn hơn {other}",
+    "gte": "{property} phải lớn hơn hoặc bằng {other}",
+    "lt": "{property} phải nhỏ hơn {other}",
+    "lte": "{property} phải nhỏ hơn hoặc bằng {other}",
+    "eq": "{property} phải bằng {other}",
+    "ne": "{property} không được bằng {other}"
+  },
+  "special": {
+    "password_strength": "{property} phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt",
+    "not_empty": "{property} không được để trống",
+    "distinct": "{property} phải là duy nhất"
   }
 }

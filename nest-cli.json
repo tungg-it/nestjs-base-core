@@ -34,13 +34,7 @@
       "entryFile": "index",
       "sourceRoot": "libs/core/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/core/tsconfig.lib.json",
-        "assets": [
-          {
-            "include": "i18n/**/*",
-            "watchAssets": true
-          }
-        ]
+        "tsConfigPath": "libs/core/tsconfig.lib.json"
       }
     },
     "util": {

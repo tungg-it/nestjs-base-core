@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { TimeoutInterceptor } from './timeout';
 import morganMiddleware from '../middleware/morgan.middleware';
 import { HttpExceptionFilter } from '@libs/core/exception';
-import { I18nValidationPipe } from 'nestjs-i18n';
+import { I18nValidationExceptionFilter, I18nValidationPipe } from 'nestjs-i18n';
 import { ResponseInterceptor } from './response';
 import { convertToCamelCase } from '@libs/util';
 
@@ -46,7 +46,14 @@ export const startApp = async (
       optionsSuccessStatus: 204,
     });
 
-    app.useGlobalPipes(new I18nValidationPipe());
+    app.useGlobalPipes(
+      new I18nValidationPipe({
+        transform: true,
+        stopAtFirstError: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
+    );
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
@@ -58,7 +65,28 @@ export const startApp = async (
 
     app.useGlobalInterceptors(new ResponseInterceptor());
     app.useGlobalInterceptors(new TimeoutInterceptor());
-    app.useGlobalFilters(new HttpExceptionFilter(config));
+    app.useGlobalFilters(
+      new HttpExceptionFilter(config),
+      new I18nValidationExceptionFilter({
+        responseBodyFormatter: (host, exc, _formattedErrors) => {
+          const errors = exc.errors || [];
+          const validationErrors = errors.map((err) => ({
+            field: err.property,
+            message:
+              Object.values(err.constraints || {})[0] || 'Validation failed',
+          }));
+
+          return {
+            code: 400,
+            message: 'Validation failed',
+            data: null,
+            cause: validationErrors.length > 0 ? validationErrors : null,
+            timestamp: new Date().toISOString(),
+            path: host.switchToHttp().getRequest<Request>().url,
+          };
+        },
+      }),
+    );
 
     // Config for development
     if (environment !== 'production') {

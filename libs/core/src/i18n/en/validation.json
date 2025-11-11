@@ -1,55 +1,53 @@
 {
-  "validation": {
-    "required": "{property} is required",
-    "string": {
-      "base": "{property} must be a string",
-      "min": "{property} must be at least {min} characters",
-      "max": "{property} must be at most {max} characters",
-      "length": "{property} must be exactly {length} characters",
-      "email": "{property} must be a valid email",
-      "url": "{property} must be a valid URL",
-      "uuid": "{property} must be a valid UUID",
-      "regex": "{property} format is invalid"
-    },
-    "number": {
-      "base": "{property} must be a number",
-      "integer": "{property} must be an integer",
-      "min": "{property} must be greater than or equal to {min}",
-      "max": "{property} must be less than or equal to {max}"
-    },
-    "boolean": {
-      "base": "{property} must be a boolean"
-    },
-    "date": {
-      "base": "{property} must be a valid date",
-      "min": "{property} must be after {min}",
-      "max": "{property} must be before {max}"
-    },
-    "array": {
-      "base": "{property} must be an array",
-      "min": "{property} must contain at least {min} items",
-      "max": "{property} must contain at most {max} items",
-      "unique": "{property} must contain unique items"
-    },
-    "object": {
-      "base": "{property} must be an object",
-      "unknown": "{property} has unknown keys"
-    },
-    "enum": {
-      "oneOf": "{property} must be one of: {values}"
-    },
-    "comparison": {
-      "gt": "{property} must be greater than {other}",
-      "gte": "{property} must be greater than or equal to {other}",
-      "lt": "{property} must be less than {other}",
-      "lte": "{property} must be less than or equal to {other}",
-      "eq": "{property} must be equal to {other}",
-      "ne": "{property} must not be equal to {other}"
-    },
-    "special": {
-      "password_strength": "{property} must contain upper, lower, number and special character",
-      "not_empty": "{property} must not be empty",
-      "distinct": "{property} must be distinct"
-    }
+  "required": "{property} is required",
+  "string": {
+    "base": "{property} must be a string",
+    "min": "{property} must be at least {min} characters",
+    "max": "{property} must be at most {max} characters",
+    "length": "{property} must be exactly {length} characters",
+    "email": "{property} must be a valid email",
+    "url": "{property} must be a valid URL",
+    "uuid": "{property} must be a valid UUID",
+    "regex": "{property} format is invalid"
+  },
+  "number": {
+    "base": "{property} must be a number",
+    "integer": "{property} must be an integer",
+    "min": "{property} must be greater than or equal to {min}",
+    "max": "{property} must be less than or equal to {max}"
+  },
+  "boolean": {
+    "base": "{property} must be a boolean"
+  },
+  "date": {
+    "base": "{property} must be a valid date",
+    "min": "{property} must be after {min}",
+    "max": "{property} must be before {max}"
+  },
+  "array": {
+    "base": "{property} must be an array",
+    "min": "{property} must contain at least {min} items",
+    "max": "{property} must contain at most {max} items",
+    "unique": "{property} must contain unique items"
+  },
+  "object": {
+    "base": "{property} must be an object",
+    "unknown": "{property} has unknown keys"
+  },
+  "enum": {
+    "oneOf": "{property} must be one of: {values}"
+  },
+  "comparison": {
+    "gt": "{property} must be greater than {other}",
+    "gte": "{property} must be greater than or equal to {other}",
+    "lt": "{property} must be less than {other}",
+    "lte": "{property} must be less than or equal to {other}",
+    "eq": "{property} must be equal to {other}",
+    "ne": "{property} must not be equal to {other}"
+  },
+  "special": {
+    "password_strength": "{property} must contain upper, lower, number and special character",
+    "not_empty": "{property} must not be empty",
+    "distinct": "{property} must be distinct"
   }
 }
