@@ -1,4 +1,4 @@
-import { Logger, Type, ValidationPipe, VersioningType } from '@nestjs/common';
+import { Logger, Type, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
@@ -48,14 +48,6 @@ export const startApp = async (
 
     app.useGlobalPipes(
       new I18nValidationPipe({
-        transform: true,
-        stopAtFirstError: true,
-        whitelist: true,
-        forbidNonWhitelisted: true,
-      }),
-    );
-    app.useGlobalPipes(
-      new ValidationPipe({
         transform: true,
         stopAtFirstError: true,
         whitelist: true,
