@@ -1,8 +1,8 @@
-import { AppModule } from '@apps/api/app.module';
+import { AppModule } from '@apps/chatbot/app.module';
 import { startApp } from '@libs/core';
 
 startApp(AppModule, {
-  appName: 'api',
+  appName: 'chatbot',
 }).catch((e) => {
   console.error(e);
   process.exit(1);

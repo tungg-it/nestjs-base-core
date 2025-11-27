@@ -24,9 +24,7 @@ export const startApp = async (
   const config = app.get(ConfigService);
   const port = config.get<number>(convertToCamelCase(appName) + 'Port');
   const environment = config.get<string>('environment');
-  const apiDocument = config.get<string>(
-    convertToCamelCase(appName) + 'Document',
-  );
+  const apiDocument = config.get<string>('apiDocument');
   const prefix = `${appName === 'api' ? appName : appName + '/api'}`;
 
   if (exposePort) {
@@ -37,7 +35,7 @@ export const startApp = async (
     });
 
     app.enableCors({
-      origin: ['*'], // Allows many domain
+      origin: '*', // Allows many domain
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language'],
       exposedHeaders: ['Content-Disposition'], // If return file download
@@ -104,7 +102,7 @@ export const startApp = async (
         .build();
       const document = SwaggerModule.createDocument(app, config);
       SwaggerModule.setup(
-        `${prefix}/${apiDocument}`,
+        `${appName}/${apiDocument}`,
         app,
         document,
         docOptions,
@@ -119,7 +117,7 @@ export const startApp = async (
 
     if (environment !== 'production')
       logger.log(
-        `API Document service ${appName}: http://localhost:${port}/${prefix}/${apiDocument}`,
+        `API Document service ${appName}: http://localhost:${port}/${appName}/${apiDocument}`,
       );
 
     logger.log(`Environment: ${environment}`);
