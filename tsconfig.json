@@ -19,7 +19,7 @@
     "noFallthroughCasesInSwitch": false,
     "esModuleInterop": true,
     "paths": {
-      "@apps/chatbot/*": ["apps/chatbot/src/*"],
+      "@apps/api/*": ["apps/api/src/*"],
       "@libs/core": ["libs/core/src"],
       "@libs/core/*": ["libs/core/src/*"],
       "@libs/util": ["libs/util/src"],

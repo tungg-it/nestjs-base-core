@@ -1,173 +1,229 @@
-# Nestjs Base Monorepo By Tùng IT
+<div align="center">
 
-- Use [NestJS](https://docs.nestjs.com/)
-- Use Node.js (v22 or later)
-- Use pnpm.
-- Add variables in .env file based on .env.example file
+# 🚀 NestJS Base Monorepo
 
-## Architecture
+[![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)](https://nestjs.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-F69220?style=for-the-badge&logo=pnpm&logoColor=white)](https://pnpm.io/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
-- **Framework**: NestJS
-- **API Style**: REST API with POST endpoints
-- **API Docs**: Swagger
+</div>
 
-## Project Structure
+---
+
+## 📋 Table of Contents
+
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
+- [Running the Application](#-running-the-application)
+- [Docker](#-docker)
+- [Code Generation](#-code-generation)
+- [Validation \& i18n](#-validation--i18n)
+- [Author](#-author)
+
+---
+
+## ✨ Features
+
+- 🏗️ **Monorepo Architecture** - Organized structure with shared libraries
+- 🌐 **REST API** - POST-based endpoints with Swagger documentation
+- 🌍 **Internationalization (i18n)** - Multi-language support (EN/VI)
+- ✅ **Validation** - Built-in validation with translated error messages
+- 🐳 **Docker Ready** - Production-ready Docker configuration
+- ⚡ **Code Generation** - CLI tools for generating apps and modules
+- 📝 **TypeScript** - Full TypeScript support with strict mode
+
+---
+
+## 🛠️ Tech Stack
+
+| Technology                                    | Description                                |
+| --------------------------------------------- | ------------------------------------------ |
+| [NestJS](https://docs.nestjs.com/)            | Progressive Node.js framework              |
+| [TypeScript](https://www.typescriptlang.org/) | Typed JavaScript                           |
+| [Node.js](https://nodejs.org/)                | v22 or later                               |
+| [pnpm](https://pnpm.io/)                      | Fast, disk space efficient package manager |
+| [Docker](https://www.docker.com/)             | Containerization platform                  |
+| [Swagger](https://swagger.io/)                | API documentation                          |
+
+---
+
+## 📁 Project Structure
 
 ```
-├── apps/                  # Application services
-│   ├── api/               # API service
-│   └── worker/            # Worker service
-└── libs/                  # Shared libraries
-    ├── core/              # Core utilities
-    └── util/              # Common, helper, interfaces, ...
-
-
+nestjs-base-core/
+├── 📂 apps/                    # Application services
+│   ├── 📂 api/                 # Main API service
+│   ├── 📂 chatbot/             # Chatbot service
+│   └── 📂 worker/              # Background worker service
+├── 📂 libs/                    # Shared libraries
+│   ├── 📂 core/                # Core utilities & configurations
+│   │   └── 📂 src/
+│   │       ├── 📂 app/         # App bootstrap & common modules
+│   │       ├── 📂 config/      # Configuration management
+│   │       ├── 📂 exception/   # Exception filters
+│   │       ├── 📂 i18n/        # Internationalization files
+│   │       └── 📂 middleware/  # Custom middlewares
+│   └── 📂 util/                # Common utilities & helpers
+├── 📂 script/                  # Code generation scripts
+├── 📄 docker-compose.yaml      # Docker Compose configuration
+├── 📄 nest-cli.json            # NestJS CLI configuration
+└── 📄 package.json             # Project dependencies
 ```
 
-## Installation
+---
 
-```bash
-$ pnpm install
-```
-
-## Running application
-
-**1. Production.**
-
-```bash
-$ prod
-```
-
-**2. Development.**
-
-```bash
-# No watching
-$ pnpm start
-```
-
-```bash
-# Watching
-$ pnpm dev
-```
-
-**3. Build application.**
-
-```bash
-$ pnpm build
-```
-
-## Docker
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Docker and Docker Compose installed on your system
-- `.env` file configured (based on `.env.example`)
+- **Node.js** v22 or later
+- **pnpm** package manager
+- **Docker** & Docker Compose (optional, for containerization)
+
+### Installation
+
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/tungg-it/nestjs-base-core.git
+cd nestjs-base-core
+```
+
+2. **Install dependencies**
+
+```bash
+pnpm install
+```
+
+3. **Configure environment**
+
+```bash
+cp .env.example .env
+# Edit .env file with your configuration
+```
+
+---
+
+## 🏃 Running the Application
+
+### Development Mode
+
+```bash
+# Start without watching
+pnpm start
+
+# Start with hot-reload (watching)
+pnpm dev
+```
+
+### Production Mode
+
+```bash
+pnpm prod
+```
+
+### Build Application
+
+```bash
+pnpm build
+```
+
+### Linting
+
+```bash
+pnpm lint
+```
+
+---
+
+## 🐳 Docker
 
 ### Using Docker Compose
 
-**1. Build and start the application:**
+| Command                           | Description                     |
+| --------------------------------- | ------------------------------- |
+| `docker-compose up -d`            | Build and start the application |
+| `docker-compose logs -f api`      | View logs                       |
+| `docker-compose down`             | Stop the application            |
+| `docker-compose build --no-cache` | Rebuild the image               |
+| `docker-compose restart api`      | Restart the service             |
+
+> 📍 The API service will be available at `http://localhost:8080`
+
+### Using Docker Directly
+
+**Build the image:**
 
 ```bash
-$ docker-compose -f up -d
+docker build -f apps/api/Dockerfile -t nestjs-base-api .
 ```
 
-**2. View logs:**
+**Run the container:**
 
 ```bash
-$ docker-compose logs -f api
-```
-
-**3. Stop the application:**
-
-```bash
-$ docker-compose down
-```
-
-**4. Rebuild the image:**
-
-```bash
-$ docker-compose build --no-cache
-```
-
-**5. Restart the service:**
-
-```bash
-$ docker-compose restart api
-```
-
-The API service will be available at `http://localhost:8080`.
-
-### Using Docker directly
-
-**1. Build the image:**
-
-```bash
-$ docker build -f apps/api/Dockerfile -t nestjs-base-api .
-```
-
-**2. Run the container:**
-
-```bash
-$ docker run -d \
+docker run -d \
   --name nestjs-base-api \
   -p 8080:8080 \
   --env-file .env \
   nestjs-base-api
 ```
 
-**3. View logs:**
+**Manage container:**
 
 ```bash
-$ docker logs -f nestjs-base-api
+# View logs
+docker logs -f nestjs-base-api
+
+# Stop container
+docker stop nestjs-base-api
+
+# Remove container
+docker rm nestjs-base-api
 ```
 
-**4. Stop and remove the container:**
+---
+
+## ⚙️ Code Generation
+
+### Generate a New Application
 
 ```bash
-$ docker stop nestjs-base-api
-$ docker rm nestjs-base-api
+pnpm gen:app <app-name>
+
+# Examples
+pnpm gen:app auth
+pnpm gen:app payment-gateway
 ```
 
-## Generate a new service (app)
-
-Create a minimal app
+### Generate a New Module
 
 ```bash
-$ pnpm gen:app <app-name>
+pnpm gen:module <app-name> <module-name>
 
-# example: create an "auth" app
-$ pnpm gen:app auth
-
-# example: create an "payment-gateway" app
-$ pnpm gen:app payment-gateway
+# Example: Create "user" module in "api" app
+pnpm gen:module api user
 ```
 
-## Generate a new module
+---
 
-Create a module in app
+## 🌍 Validation & i18n
 
-```bash
-$ pnpm gen:module <app-name> <module-name>
+The project includes `nestjs-i18n` with a global `I18nValidationPipe` and pre-configured validation messages.
 
-# example: create an "user" module in api app
-$ pnpm gen:module api user
-```
+### Supported Languages
 
-## Lint
+| Language          | Header Value |
+| ----------------- | ------------ |
+| English (default) | `x-lang: en` |
+| Vietnamese        | `x-lang: vi` |
 
-```bash
-$ pnpm lint
-```
+### Define DTOs with i18n Messages
 
-## Validation & i18n usage
-
-The project ships with `nestjs-i18n` and a global `I18nValidationPipe` enabled, plus common validation messages under `libs/core/src/i18n/{en,vi}/validation.json`.
-
-### Define DTOs with i18n messages
-
-Use `i18nValidationMessage` from `nestjs-i18n` so validation errors resolve to translation keys. Placeholders like `{property}`, `{min}`, `{max}` are supported via our message templates.
-
-```ts
+```typescript
 // apps/api/src/example/dto/create-user.dto.ts
 import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
@@ -186,9 +242,9 @@ export class CreateUserDto {
 }
 ```
 
-### Controller example
+### Controller Example
 
-```ts
+```typescript
 // apps/api/src/example/example.controller.ts
 import { Body, Controller, Post } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -202,12 +258,9 @@ export class ExampleController {
 }
 ```
 
-### Switch language
+### Response Examples
 
-- Default: `x-lang: en`
-- Use header: `x-lang: en` or `x-lang: vi`
-
-### Sample response
+**English Response:**
 
 ```json
 {
@@ -220,7 +273,7 @@ export class ExampleController {
 }
 ```
 
-In Vietnamese (`x-lang: vi`):
+**Vietnamese Response (`x-lang: vi`):**
 
 ```json
 {
@@ -230,26 +283,22 @@ In Vietnamese (`x-lang: vi`):
 }
 ```
 
-Message keys are defined in:
+### Using Translated Messages
 
-- `libs/core/src/i18n/en/validation.json`
-- `libs/core/src/i18n/vi/validation.json`
-
-### Use translated messages (non-validation)
-
-You can translate standard messages using `I18nContext` and our `message.json` files.
-
-```ts
-// Anywhere in a request scope (controller, pipe, filter, service with context)
+```typescript
 import { I18nContext } from 'nestjs-i18n';
 
+// Get current i18n context
 const i18n = I18nContext.current();
 const msg = i18n.t('message.errors.not_found');
+
+// With interpolation
+const text = i18n.t('message.welcome', { args: { name: 'Tùng' } });
 ```
 
-#### Throwing HTTP exceptions with translated messages
+### Throwing HTTP Exceptions
 
-```ts
+```typescript
 import {
   Controller,
   Get,
@@ -266,35 +315,57 @@ export class ItemsController {
     const item = null; // pretend lookup
     if (!item) {
       const i18n = I18nContext.current();
-      const message = i18n.t('message.errors.object_not_found');
-      throw new HttpException(message, HttpStatus.NOT_FOUND);
-      // or throw new NotFoundException(message)
+      throw new HttpException(
+        i18n.t('message.errors.object_not_found'),
+        HttpStatus.NOT_FOUND,
+      );
     }
     return item;
   }
 }
 ```
 
-#### Using our global HttpExceptionFilter
+> 💡 **Tip:** The global `HttpExceptionFilter` automatically maps plain keys through `message.errors.*`:
+>
+> ```typescript
+> throw new HttpException('not_found', HttpStatus.NOT_FOUND);
+> // -> Responds with translated `message.errors.not_found`
+> ```
 
-If you throw `HttpException` with plain keys (like `not_found`), the global filter maps them through `message.errors.*` automatically:
+### i18n Files Location
 
-```ts
-throw new HttpException('not_found', HttpStatus.NOT_FOUND);
-// -> will respond with translated `message.errors.not_found`
-```
+- `libs/core/src/i18n/en/validation.json`
+- `libs/core/src/i18n/en/message.json`
+- `libs/core/src/i18n/vi/validation.json`
+- `libs/core/src/i18n/vi/message.json`
 
-#### Interpolation and custom namespaces
+---
 
-`message.json` can also contain nested keys. You can pass variables for interpolation:
+## 👨‍💻 Author
 
-```ts
-// en/message.json
-{
-  "welcome": "Welcome, {name}!"
-}
+<div align="center">
 
-// usage
-const i18n = I18nContext.current();
-const text = i18n.t('message.welcome', { args: { name: 'Tùng' } });
-```
+**Tùng IT**
+
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/tungg-it)
+[![Facebook](https://img.shields.io/badge/Facebook-1877F2?style=for-the-badge&logo=facebook&logoColor=white)](https://www.facebook.com/tungtt.dev/)
+[![TikTok](https://img.shields.io/badge/TikTok-000000?style=for-the-badge&logo=tiktok&logoColor=white)](https://www.tiktok.com/@.tung_it)
+[![Email](https://img.shields.io/badge/Email-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:tung.webdeveloper@gmail.com)
+
+</div>
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+**⭐ If you find this project helpful, please give it a star!**
+
+Made with ❤️ by [Tùng IT](https://github.com/tungg-it)
+
+</div>
