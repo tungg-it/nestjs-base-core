@@ -8,6 +8,7 @@ import { HttpExceptionFilter } from '@libs/core/exception';
 import { I18nValidationExceptionFilter, I18nValidationPipe } from 'nestjs-i18n';
 import { ResponseInterceptor } from './response';
 import { convertToCamelCase } from '@libs/util';
+import { flattenValidationErrors } from '../exception';
 
 export interface AppOptions {
   appName: string;
@@ -60,11 +61,12 @@ export const startApp = async (
       new I18nValidationExceptionFilter({
         responseBodyFormatter: (host, exc, _formattedErrors) => {
           const errors = exc.errors || [];
-          const validationErrors = errors.map((err) => ({
-            field: err.property,
-            message:
-              Object.values(err.constraints || {})[0] || 'Validation failed',
-          }));
+          const validationErrors = flattenValidationErrors(errors);
+
+          if (environment !== 'production')
+            logger.error(
+              `Validation errors: ${JSON.stringify(validationErrors)}`,
+            );
 
           return {
             code: 400,
