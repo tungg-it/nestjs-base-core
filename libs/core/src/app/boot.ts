@@ -1,14 +1,17 @@
-import { Logger, Type, VersioningType } from '@nestjs/common';
+import { Type, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { TimeoutInterceptor } from './timeout';
-import morganMiddleware from '../middleware/morgan.middleware';
 import { HttpExceptionFilter } from '@libs/core/exception';
 import { I18nValidationExceptionFilter, I18nValidationPipe } from 'nestjs-i18n';
 import { ResponseInterceptor } from './response';
 import { convertToCamelCase } from '@libs/util';
 import { flattenValidationErrors } from '../exception';
+import { Logger as NestPinoLogger } from 'nestjs-pino';
+import { RequestIdMiddleware } from '../middleware/request-id.middleware';
+import { AppLogger } from '../logger/logger.service';
+import { wrapLoggerSkipNestFramework } from '../logger/nest-quiet-logger';
 
 export interface AppOptions {
   appName: string;
@@ -19,14 +22,22 @@ export const startApp = async (
   options: AppOptions,
 ) => {
   const { appName, exposePort = true } = options;
-  const logger = new Logger(appName);
-
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+    logger: false,
+  });
+  
   const config = app.get(ConfigService);
   const port = config.get<number>(convertToCamelCase(appName) + 'Port');
   const environment = config.get<string>('environment');
   const apiDocument = config.get<string>('apiDocument');
   const prefix = `${appName === 'api' ? appName : appName + '/api'}`;
+  
+  app.use(RequestIdMiddleware());
+  app.useLogger(wrapLoggerSkipNestFramework(app.get(NestPinoLogger)));
+  
+  const logger = app.get(AppLogger);
+  logger.setContext(AppModule.name);
 
   if (exposePort) {
     app.setGlobalPrefix(prefix);
@@ -83,7 +94,7 @@ export const startApp = async (
     // Config for development
     if (environment !== 'production') {
       // Morgan config
-      app.use(morganMiddleware);
+      // app.use(morganMiddleware);
 
       // Swagger config
       const docOptions = {
@@ -121,11 +132,8 @@ export const startApp = async (
       logger.log(
         `API Document service ${appName}: http://localhost:${port}/${appName}/${apiDocument}`,
       );
-
-    logger.log(`Environment: ${environment}`);
   } else {
     await app.init();
     logger.log(`Service ${appName} started successfully`);
-    logger.log(`Environment: ${environment}`);
   }
 };
