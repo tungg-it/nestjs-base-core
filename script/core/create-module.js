@@ -54,6 +54,169 @@ function writeFileIfNotExists(filePath, content) {
   return true;
 }
 
+function getLineIndent(text, index) {
+  const lineStart = text.lastIndexOf('\n', index) + 1;
+  const line = text.slice(lineStart);
+  const match = line.match(/^\s*/);
+  return match ? match[0] : '';
+}
+
+function findMatchingDelimiter(text, startIndex, openChar, closeChar) {
+  let depth = 0;
+  let inSingleQuote = false;
+  let inDoubleQuote = false;
+  let inTemplateString = false;
+  let inLineComment = false;
+  let inBlockComment = false;
+  let escaped = false;
+
+  for (let i = startIndex; i < text.length; i += 1) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+
+    if (inLineComment) {
+      if (char === '\n') inLineComment = false;
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (char === '*' && nextChar === '/') {
+        inBlockComment = false;
+        i += 1;
+      }
+      continue;
+    }
+
+    if (inSingleQuote || inDoubleQuote || inTemplateString) {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+
+      if (char === '\\') {
+        escaped = true;
+        continue;
+      }
+
+      if (inSingleQuote && char === "'") {
+        inSingleQuote = false;
+      } else if (inDoubleQuote && char === '"') {
+        inDoubleQuote = false;
+      } else if (inTemplateString && char === '`') {
+        inTemplateString = false;
+      }
+
+      continue;
+    }
+
+    if (char === '/' && nextChar === '/') {
+      inLineComment = true;
+      i += 1;
+      continue;
+    }
+
+    if (char === '/' && nextChar === '*') {
+      inBlockComment = true;
+      i += 1;
+      continue;
+    }
+
+    if (char === "'") {
+      inSingleQuote = true;
+      continue;
+    }
+
+    if (char === '"') {
+      inDoubleQuote = true;
+      continue;
+    }
+
+    if (char === '`') {
+      inTemplateString = true;
+      continue;
+    }
+
+    if (char === openChar) {
+      depth += 1;
+      continue;
+    }
+
+    if (char === closeChar) {
+      depth -= 1;
+      if (depth === 0) {
+        return i;
+      }
+    }
+  }
+
+  return -1;
+}
+
+function addModuleToAppModuleImports(content, moduleClassName) {
+  const decoratorStart = content.indexOf('@Module(');
+  assert(
+    decoratorStart !== -1,
+    'Could not find @Module decorator in app.module.ts',
+  );
+
+  const objectStart = content.indexOf('{', decoratorStart);
+  assert(objectStart !== -1, 'Could not find @Module object in app.module.ts');
+
+  const objectEnd = findMatchingDelimiter(content, objectStart, '{', '}');
+  assert(objectEnd !== -1, 'Could not parse @Module object in app.module.ts');
+
+  const objectBody = content.slice(objectStart + 1, objectEnd);
+  const importsMatch = objectBody.match(/^([ \t]*)imports\s*:\s*\[/m);
+
+  if (!importsMatch) {
+    const objectIndent = getLineIndent(content, objectStart);
+    const propertyIndent = `${objectIndent}  `;
+    const itemIndent = `${propertyIndent}  `;
+    const insertion = `\n${propertyIndent}imports: [\n${itemIndent}${moduleClassName},\n${propertyIndent}],`;
+
+    return (
+      content.slice(0, objectStart + 1) +
+      insertion +
+      content.slice(objectStart + 1)
+    );
+  }
+
+  const propertyStart = objectStart + 1 + importsMatch.index;
+  const arrayStart = content.indexOf('[', propertyStart);
+  const arrayEnd = findMatchingDelimiter(content, arrayStart, '[', ']');
+  assert(arrayEnd !== -1, 'Could not parse imports array in app.module.ts');
+
+  const arrayContent = content.slice(arrayStart + 1, arrayEnd);
+  const isInImportsArray = new RegExp(`\\b${moduleClassName}\\b`).test(
+    arrayContent,
+  );
+
+  if (isInImportsArray) {
+    return content;
+  }
+
+  let newArrayContent;
+  if (arrayContent.trim().length === 0) {
+    const propertyIndent = importsMatch[1];
+    const itemIndent = `${propertyIndent}  `;
+    newArrayContent = `\n${itemIndent}${moduleClassName},\n${propertyIndent}`;
+  } else if (arrayContent.includes('\n')) {
+    const propertyIndent = importsMatch[1];
+    const itemIndent = `${propertyIndent}  `;
+    const trimmedEnd = arrayContent.replace(/\s*$/, '');
+    const separator = /,\s*$/.test(trimmedEnd) ? '' : ',';
+    newArrayContent = `${trimmedEnd}${separator}\n${itemIndent}${moduleClassName},\n${propertyIndent}`;
+  } else {
+    const trimmed = arrayContent.trim();
+    const separator = trimmed.endsWith(',') ? ' ' : ', ';
+    newArrayContent = `${trimmed}${separator}${moduleClassName}`;
+  }
+
+  return (
+    content.slice(0, arrayStart + 1) + newArrayContent + content.slice(arrayEnd)
+  );
+}
+
 function main() {
   try {
     const repoRoot = path.resolve(__dirname, '../../');
@@ -171,39 +334,7 @@ export class ${moduleClassName} {}
       }
     }
 
-    const moduleDecoratorRegex = /@Module\(\{[\s\S]*?\}\)/m;
-    const decoratorMatch = content.match(moduleDecoratorRegex);
-    assert(decoratorMatch, 'Could not find @Module decorator in app.module.ts');
-    const decorator = decoratorMatch[0];
-
-    const importsPropRegex = /(imports\s*:\s*\[)([\s\S]*?)(\])/m;
-    if (importsPropRegex.test(decorator)) {
-      const currentImports = decorator.replace(
-        importsPropRegex,
-        (m, p1, p2) => p2,
-      );
-      const isInImportsArray = new RegExp(
-        `(^|[\n\r\s,])${moduleClassName}(?=\\s*(,|$))`,
-      ).test(currentImports);
-      if (!isInImportsArray) {
-        const newDecorator = decorator.replace(
-          importsPropRegex,
-          (m, p1, p2, p3) => {
-            const trimmed = p2.trim();
-            const needsComma =
-              trimmed.endsWith(',') || trimmed.length === 0 ? '' : ', ';
-            return `${p1}${p2}${needsComma}${moduleClassName}${p3}`;
-          },
-        );
-        content = content.replace(decorator, newDecorator);
-      }
-    } else {
-      const newDecorator = decorator.replace(
-        /@Module\(\{/,
-        (s) => `${s}\n  imports: [${moduleClassName}],`,
-      );
-      content = content.replace(decorator, newDecorator);
-    }
+    content = addModuleToAppModuleImports(content, moduleClassName);
 
     fs.writeFileSync(appModulePath, content, 'utf8');
 

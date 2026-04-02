@@ -15,7 +15,7 @@ function exitWithUsage(message) {
   if (message) {
     console.error(`${colors.red}❌ ${message}${colors.reset}`);
   }
-  console.error('Usage: node script/create-app.js <app-name>');
+  console.error('Usage: node script/core/create-app.js <app-name>');
   process.exit(1);
 }
 
@@ -42,6 +42,34 @@ function writeJson(filePath, data) {
   fs.writeFileSync(filePath, content, 'utf8');
 }
 
+function buildMainTemplate(appName) {
+  return `import { AppModule } from '@apps/${appName}/app.module';
+import { startApp } from '@libs/core';
+
+startApp(AppModule, {
+  appName: '${appName}',
+}).catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
+`;
+}
+
+function buildAppModuleTemplate(appName) {
+  return `import { Module } from '@nestjs/common';
+import { DefaultRouteController, commonModules } from '@libs/core';
+
+@Module({
+  imports: [
+    ...commonModules({ appName: '${appName}' }),
+  ],
+  controllers: [DefaultRouteController],
+  providers: [],
+})
+export class AppModule {}
+`;
+}
+
 function main() {
   const repoRoot = path.resolve(__dirname, '../../');
   const appName = process.argv[2];
@@ -53,9 +81,7 @@ function main() {
     'App name must match ^[a-z][a-z0-9-]*$',
   );
 
-  const apiAppDir = path.join(repoRoot, 'apps', 'api');
   const newAppDir = path.join(repoRoot, 'apps', safeName);
-  assert(fs.existsSync(apiAppDir), 'Base app apps/api not found.');
   if (fs.existsSync(newAppDir)) {
     console.error(
       `${colors.red}❌ App already exists: apps/${safeName} (skipping creation)${colors.reset}`,
@@ -69,22 +95,12 @@ function main() {
     ensureDirSync(newSrcDir);
 
     // 2) main.ts & app.module.ts
-    const apiMainPath = path.join(apiAppDir, 'src', 'main.ts');
-    const apiAppModulePath = path.join(apiAppDir, 'src', 'app.module.ts');
     const mainTs = path.join(newSrcDir, 'main.ts');
     const appModuleTs = path.join(newSrcDir, 'app.module.ts');
     const tsconfigApp = path.join(newAppDir, 'tsconfig.app.json');
 
-    const mainTemplate = fs
-      .readFileSync(apiMainPath, 'utf8')
-      .replace(/@apps\/api\//g, `@apps/${safeName}/`)
-      .replace(/appName:\s*'api'/, `appName: '${safeName}'`);
-    fs.writeFileSync(mainTs, mainTemplate, 'utf8');
-
-    const appModuleTemplate = fs
-      .readFileSync(apiAppModulePath, 'utf8')
-      .replace(/@apps\/api\//g, `@apps/${safeName}/`);
-    fs.writeFileSync(appModuleTs, appModuleTemplate, 'utf8');
+    fs.writeFileSync(mainTs, buildMainTemplate(safeName), 'utf8');
+    fs.writeFileSync(appModuleTs, buildAppModuleTemplate(safeName), 'utf8');
 
     // 3) tsconfig.app.json
     const tsCfg = {
