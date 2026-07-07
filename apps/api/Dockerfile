@@ -1,60 +1,43 @@
-# Builder stage
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS base
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+ENV CI=true
 
-# Copy dependency files
+RUN corepack enable
+
+# Cache dependency install separately from source changes
+FROM base AS deps
+
 COPY package.json pnpm-lock.yaml ./
 
-# Install all dependencies (including devDependencies for building)
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm install --frozen-lockfile
 
-# Copy source code
+FROM base AS builder
+
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build the application
-RUN pnpm build api
+RUN pnpm exec nest build api \
+    && pnpm prune --prod --ignore-scripts
 
-# Production stage
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS production
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
-
-# Set production environment
 ENV NODE_ENV=production
+ENV CI=true
 
-# Copy package files
-COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
+RUN addgroup -g 1001 -S nodejs \
+    && adduser -S nestjs -u 1001 -G nodejs
 
-# Install only production dependencies
-RUN pnpm install --prod --frozen-lockfile && \
-    pnpm store prune && \
-    rm -rf /root/.pnpm-store
-
-# Copy built application
-COPY --from=builder /app/dist ./dist
-
-# Copy i18n files (required for nestjs-i18n at runtime)
-COPY --from=builder /app/libs/core/src/i18n ./libs/core/src/i18n
-
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nestjs -u 1001 && \
-    chown -R nestjs:nodejs /app
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nestjs:nodejs /app/libs/core/src/i18n ./libs/core/src/i18n
 
 USER nestjs
 
-# Expose port
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:8080/api/health-check', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
-
-# Start the application
-CMD ["node", "dist/apps/api/main.js"]
+CMD ["node", "dist/apps/api/apps/api/src/main.js"]

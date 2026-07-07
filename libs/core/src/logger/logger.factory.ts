@@ -1,5 +1,5 @@
 import { Params } from 'nestjs-pino';
-import { Request, Response } from 'express';
+import { IncomingMessage, ServerResponse } from 'http';
 import { randomUUID } from 'crypto';
 import os from 'os';
 
@@ -9,17 +9,20 @@ export interface CreatePinoConfigOptions {
   environment: string;
 }
 
+function shouldIgnoreHttpLog(req: IncomingMessage): boolean {
+  const path = req.url?.split('?')[0] ?? '';
+  return path === '/health' || path.endsWith('/health') || path.includes('/health-check');
+}
+
 export const createPinoConfig = (options: CreatePinoConfigOptions): Params => {
   const { appName, devMode, environment } = options;
   const isProduction = environment === 'production';
 
   return {
     pinoHttp: {
-      // Service name
       name: appName.toUpperCase(),
-      // Log level
       level: isProduction ? 'debug' : 'info',
-      // Default pino base is { pid, hostname }; merge so we keep those + env
+
       base: {
         pid: process.pid,
         hostname: os.hostname(),
@@ -27,8 +30,19 @@ export const createPinoConfig = (options: CreatePinoConfigOptions): Params => {
         service: appName.toUpperCase(),
       },
 
-      // Generate request ID
       genReqId: (req) => req.headers['x-request-id'] ?? randomUUID(),
+
+      wrapSerializers: false,
+      serializers: {
+        req: (req: IncomingMessage) => ({
+          requestId: req.headers['x-request-id'],
+          method: req.method,
+          url: req.url,
+        }),
+        res: (res: ServerResponse) => ({
+          statusCode: res.statusCode,
+        }),
+      },
 
       transport: devMode
         ? {
@@ -42,28 +56,11 @@ export const createPinoConfig = (options: CreatePinoConfigOptions): Params => {
           }
         : undefined,
 
-      // Serializers for request and response
-      serializers: {
-        req(req: Request) {
-          return {
-            requestId: req.headers['x-request-id'],
-            method: req.method,
-            url: req.url,
-            body: isProduction ? {} : req.body,
-          };
-        },
-        res(res: Response) {
-          return {
-            statusCode: res.statusCode,
-            body: isProduction ? {} : res.locals?.responseBody,
-          };
-        },
+      autoLogging: {
+        ignore: shouldIgnoreHttpLog,
       },
 
-      // Auto logging for health check
-      autoLogging: {
-        ignore: (req) => req.url.includes('/health-check'),
-      },
+      customProps: () => ({}),
     },
   };
 };

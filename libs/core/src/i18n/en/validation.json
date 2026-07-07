@@ -49,5 +49,22 @@
     "password_strength": "{property} must contain upper, lower, number and special character",
     "not_empty": "{property} must not be empty",
     "distinct": "{property} must be distinct"
+  },
+  "constraints": {
+    "isNotEmpty": "{property} must not be empty",
+    "isString": "{property} must be a string",
+    "isInt": "{property} must be an integer",
+    "isNumber": "{property} must be a number",
+    "isBoolean": "{property} must be true or false",
+    "isArray": "{property} must be an array",
+    "isEnum": "{property} has an invalid value",
+    "isUuidV7": "{property} is not a valid identifier",
+    "isUnixTimestamp": "{property} must be a Unix timestamp in milliseconds",
+    "maxLength": "{property} exceeds the allowed length",
+    "minLength": "{property} does not meet the minimum length",
+    "max": "{property} exceeds the allowed value",
+    "min": "{property} is less than the allowed value",
+    "arrayNotEmpty": "{property} must contain at least one item",
+    "isDateString": "{property} must be a valid date"
   }
 }

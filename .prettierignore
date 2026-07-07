@@ -1,0 +1,3 @@
+# Generated gRPC code — owned by `buf generate` (ts-proto). Reformatting it would diverge from the
+# generator output and break the proto codegen drift-check (docs/adr/0014).
+**/*.pb.ts

@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 services:
   api:
@@ -7,7 +7,7 @@ services:
       dockerfile: ./apps/api/Dockerfile
     container_name: nestjs-base-api
     ports:
-      - "8080:8080"
+      - '8000:8000'
     volumes:
       - .:/app
       - /app/node_modules

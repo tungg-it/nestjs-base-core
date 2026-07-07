@@ -49,5 +49,22 @@
     "password_strength": "{property} phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt",
     "not_empty": "{property} không được để trống",
     "distinct": "{property} phải là duy nhất"
+  },
+  "constraints": {
+    "isNotEmpty": "{property} không được để trống",
+    "isString": "{property} phải là chuỗi ký tự",
+    "isInt": "{property} phải là số nguyên",
+    "isNumber": "{property} phải là số",
+    "isBoolean": "{property} phải là true hoặc false",
+    "isArray": "{property} phải là một mảng",
+    "isEnum": "{property} có giá trị không hợp lệ",
+    "isUuidV7": "{property} không phải mã định danh hợp lệ",
+    "isUnixTimestamp": "{property} phải là Unix timestamp tính bằng mili-giây",
+    "maxLength": "{property} vượt quá độ dài cho phép",
+    "minLength": "{property} chưa đạt độ dài tối thiểu",
+    "max": "{property} vượt quá giá trị cho phép",
+    "min": "{property} nhỏ hơn giá trị cho phép",
+    "arrayNotEmpty": "{property} phải có ít nhất một phần tử",
+    "isDateString": "{property} phải là ngày hợp lệ"
   }
 }

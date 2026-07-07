@@ -154,10 +154,7 @@ function findMatchingDelimiter(text, startIndex, openChar, closeChar) {
 
 function addModuleToAppModuleImports(content, moduleClassName) {
   const decoratorStart = content.indexOf('@Module(');
-  assert(
-    decoratorStart !== -1,
-    'Could not find @Module decorator in app.module.ts',
-  );
+  assert(decoratorStart !== -1, 'Could not find @Module decorator in app.module.ts');
 
   const objectStart = content.indexOf('{', decoratorStart);
   assert(objectStart !== -1, 'Could not find @Module object in app.module.ts');
@@ -174,11 +171,7 @@ function addModuleToAppModuleImports(content, moduleClassName) {
     const itemIndent = `${propertyIndent}  `;
     const insertion = `\n${propertyIndent}imports: [\n${itemIndent}${moduleClassName},\n${propertyIndent}],`;
 
-    return (
-      content.slice(0, objectStart + 1) +
-      insertion +
-      content.slice(objectStart + 1)
-    );
+    return content.slice(0, objectStart + 1) + insertion + content.slice(objectStart + 1);
   }
 
   const propertyStart = objectStart + 1 + importsMatch.index;
@@ -187,9 +180,7 @@ function addModuleToAppModuleImports(content, moduleClassName) {
   assert(arrayEnd !== -1, 'Could not parse imports array in app.module.ts');
 
   const arrayContent = content.slice(arrayStart + 1, arrayEnd);
-  const isInImportsArray = new RegExp(`\\b${moduleClassName}\\b`).test(
-    arrayContent,
-  );
+  const isInImportsArray = new RegExp(`\\b${moduleClassName}\\b`).test(arrayContent);
 
   if (isInImportsArray) {
     return content;
@@ -212,9 +203,7 @@ function addModuleToAppModuleImports(content, moduleClassName) {
     newArrayContent = `${trimmed}${separator}${moduleClassName}`;
   }
 
-  return (
-    content.slice(0, arrayStart + 1) + newArrayContent + content.slice(arrayEnd)
-  );
+  return content.slice(0, arrayStart + 1) + newArrayContent + content.slice(arrayEnd);
 }
 
 function main() {
@@ -226,14 +215,8 @@ function main() {
 
     const appName = app.trim();
     const moduleRawName = mod.trim();
-    assert(
-      /^[a-zA-Z0-9\-]+$/.test(appName),
-      'App must be alphanumeric or dash.',
-    );
-    assert(
-      /^[a-zA-Z0-9\-]+$/.test(moduleRawName),
-      'Module must be alphanumeric or dash.',
-    );
+    assert(/^[a-zA-Z0-9\-]+$/.test(appName), 'App must be alphanumeric or dash.');
+    assert(/^[a-zA-Z0-9\-]+$/.test(moduleRawName), 'Module must be alphanumeric or dash.');
 
     const appDir = path.join(repoRoot, 'apps', appName);
     const appSrcDir = path.join(appDir, 'src');
@@ -245,14 +228,10 @@ function main() {
     const classBaseName = toPascalCase(moduleRawName);
     const moduleClassName = `${classBaseName}Module`;
     const controllerClassName = `${classBaseName}Controller`;
-    const serviceClassName = `${classBaseName}Service`;
-    const repositoryClassName = `${classBaseName}Repository`;
 
     const targetModuleDir = path.join(appDir, 'src', 'modules', moduleDirName);
     if (fs.existsSync(targetModuleDir)) {
-      console.log(
-        `${colors.red}❌ Module already exists: apps/${appName}/src/modules/${moduleDirName}${colors.reset}`,
-      );
+      console.log(`${colors.red}❌ Module already exists: apps/${appName}/src/modules/${moduleDirName}${colors.reset}`);
       process.exit(0);
     }
     ensureDirSync(targetModuleDir);
@@ -263,59 +242,26 @@ function main() {
 @Controller('${moduleDirName}')
 export class ${controllerClassName} {}
 `;
-    const serviceTs = `import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class ${serviceClassName} {}
-`;
-    const repoTs = `import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class ${repositoryClassName} {}
-`;
-    const mapperTs = `export const map${classBaseName}ToDto = (entity: unknown) => entity;
-`;
-    const dtoTs = `export interface ${classBaseName}Dto {}
-`;
+    // No repository stub: repositories live in `database/oracle/repositories/` and are provided +
+    // exported once by the @Global PersistenceDatabaseModule (docs/adr/0007), so feature modules
+    // inject them with zero local wiring. `feat:gen` fills `providers` with `...features`.
     const moduleTs = `import { Module } from '@nestjs/common';
-import { ${controllerClassName} } from './${moduleDirName}.controller';
-import { ${serviceClassName} } from './${moduleDirName}.service';
-import { ${repositoryClassName} } from './${moduleDirName}.repo';
+import { ${controllerClassName} } from './api/${moduleDirName}.controller';
 
 @Module({
   imports: [],
   controllers: [${controllerClassName}],
-  providers: [${serviceClassName}, ${repositoryClassName}],
-  exports: [${serviceClassName}, ${repositoryClassName}],
+  providers: [],
 })
 export class ${moduleClassName} {}
 `;
 
-    // Write files
-    writeFileIfNotExists(
-      path.join(targetModuleDir, `${moduleDirName}.controller.ts`),
-      controllerTs,
-    );
-    writeFileIfNotExists(
-      path.join(targetModuleDir, `${moduleDirName}.service.ts`),
-      serviceTs,
-    );
-    writeFileIfNotExists(
-      path.join(targetModuleDir, `${moduleDirName}.module.ts`),
-      moduleTs,
-    );
-    writeFileIfNotExists(
-      path.join(targetModuleDir, `${moduleDirName}.repo.ts`),
-      repoTs,
-    );
-    writeFileIfNotExists(
-      path.join(targetModuleDir, `${moduleDirName}.mapper.ts`),
-      mapperTs,
-    );
-    writeFileIfNotExists(
-      path.join(targetModuleDir, `${moduleDirName}.dto.ts`),
-      dtoTs,
-    );
+    // Write files. The HTTP controller lives under `api/` so each transport adapter has its own
+    // folder (gRPC handlers go under `rpc/`); business logic stays transport-neutral in features/.
+    // See docs/adr/0014.
+    ensureDirSync(path.join(targetModuleDir, 'api'));
+    writeFileIfNotExists(path.join(targetModuleDir, 'api', `${moduleDirName}.controller.ts`), controllerTs);
+    writeFileIfNotExists(path.join(targetModuleDir, `${moduleDirName}.module.ts`), moduleTs);
 
     // Update app.module.ts
     let content = fs.readFileSync(appModulePath, 'utf8');
@@ -325,10 +271,7 @@ export class ${moduleClassName} {}
       const match = content.match(importRegex);
       if (match) {
         const lastImportBlock = match[0];
-        content = content.replace(
-          lastImportBlock,
-          lastImportBlock + importLine + '\n',
-        );
+        content = content.replace(lastImportBlock, lastImportBlock + importLine + '\n');
       } else {
         content = importLine + '\n' + content;
       }
@@ -338,12 +281,8 @@ export class ${moduleClassName} {}
 
     fs.writeFileSync(appModulePath, content, 'utf8');
 
-    console.log(
-      `${colors.green}✅ Created module: apps/${appName}/src/modules/${moduleDirName}${colors.reset}`,
-    );
-    console.log(
-      `${colors.green}✅ Updated imports in apps/${appName}/src/app.module.ts${colors.reset}`,
-    );
+    console.log(`${colors.green}✅ Created module: apps/${appName}/src/modules/${moduleDirName}${colors.reset}`);
+    console.log(`${colors.green}✅ Updated imports in apps/${appName}/src/app.module.ts${colors.reset}`);
     console.log('Next:');
     console.log(`- Run: pnpm dev ${appName} (or npm run dev)`);
   } catch (err) {

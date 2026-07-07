@@ -59,7 +59,6 @@ script
 .eslintrc*
 .prettierrc*
 jest.config.*
-tsconfig.*.json
 
 # Temporary files
 *.tmp

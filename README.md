@@ -80,7 +80,7 @@ nestjs-base-core/
 
 ### Prerequisites
 
-- **Node.js** v22 or later
+- **Node.js** v24 or later
 - **pnpm** package manager
 - **Docker** & Docker Compose (optional, for containerization)
 
@@ -265,10 +265,7 @@ export class ExampleController {
 ```json
 {
   "statusCode": 400,
-  "message": [
-    "email must be a valid email",
-    "password must be at least 8 characters"
-  ],
+  "message": ["email must be a valid email", "password must be at least 8 characters"],
   "error": "Bad Request"
 }
 ```
@@ -299,13 +296,7 @@ const text = i18n.t('message.welcome', { args: { name: 'Tùng' } });
 ### Throwing HTTP Exceptions
 
 ```typescript
-import {
-  Controller,
-  Get,
-  HttpException,
-  HttpStatus,
-  Param,
-} from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Param } from '@nestjs/common';
 import { I18nContext } from 'nestjs-i18n';
 
 @Controller('items')
@@ -315,10 +306,7 @@ export class ItemsController {
     const item = null; // pretend lookup
     if (!item) {
       const i18n = I18nContext.current();
-      throw new HttpException(
-        i18n.t('message.errors.object_not_found'),
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException(i18n.t('message.errors.object_not_found'), HttpStatus.NOT_FOUND);
     }
     return item;
   }

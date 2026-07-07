@@ -1,7 +1,7 @@
 {
   "hello": "Hello API!",
   "errors": {
-    "server_error": "Internal server error",
+    "server_error": "An error occurred, please try again later!",
     "bad_gateway": "Bad gateway",
     "service_unavailable": "Service unavailable",
     "gateway_timeout": "Gateway timeout",
@@ -15,6 +15,8 @@
     "unprocessable_entity": "Unprocessable entity",
     "precondition_required": "Precondition required",
     "too_many_requests": "Too many requests",
+    "validation_failed": "Invalid data",
+    "not_found_with_resource": "{resource} not found",
     "object_not_found": "Object not found",
     "object_existed": "Object already exists"
   }
