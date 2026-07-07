@@ -293,11 +293,13 @@ const msg = i18n.t('message.errors.not_found');
 const text = i18n.t('message.welcome', { args: { name: 'Tùng' } });
 ```
 
-### Throwing HTTP Exceptions
+### Throwing Errors
+
+Use `CommonErrors` from `@libs/util` instead of calling `HttpException` and translating messages manually. Each thrower returns an `AppError` with a stable `statusCode`, HTTP status, and i18n key resolved by the global `HttpExceptionFilter`.
 
 ```typescript
-import { Controller, Get, HttpException, HttpStatus, Param } from '@nestjs/common';
-import { I18nContext } from 'nestjs-i18n';
+import { Controller, Get, Param } from '@nestjs/common';
+import { CommonErrors } from '@libs/util';
 
 @Controller('items')
 export class ItemsController {
@@ -305,20 +307,82 @@ export class ItemsController {
   async getOne(@Param('id') id: string) {
     const item = null; // pretend lookup
     if (!item) {
-      const i18n = I18nContext.current();
-      throw new HttpException(i18n.t('message.errors.object_not_found'), HttpStatus.NOT_FOUND);
+      throw CommonErrors.notFound('Item');
     }
     return item;
   }
 }
 ```
 
-> 💡 **Tip:** The global `HttpExceptionFilter` automatically maps plain keys through `message.errors.*`:
->
-> ```typescript
-> throw new HttpException('not_found', HttpStatus.NOT_FOUND);
-> // -> Responds with translated `message.errors.not_found`
-> ```
+**Common throwers:**
+
+| Method                                       | HTTP | `statusCode`            | Use case                      |
+| -------------------------------------------- | ---- | ----------------------- | ----------------------------- |
+| `CommonErrors.badRequest(detail?, options?)` | 400  | `BAD_REQUEST`           | Invalid input / business rule |
+| `CommonErrors.unauthenticated()`             | 401  | `UNAUTHENTICATED`       | Missing or invalid auth       |
+| `CommonErrors.forbidden()`                   | 403  | `FORBIDDEN`             | Authenticated but not allowed |
+| `CommonErrors.notFound(resource?)`           | 404  | `NOT_FOUND`             | Resource not found            |
+| `CommonErrors.conflict(detail?, options?)`   | 409  | `CONFLICT`              | Duplicate / state conflict    |
+| `CommonErrors.validationFailed(options?)`    | 422  | `VALIDATION_FAILED`     | Field-level validation errors |
+| `CommonErrors.tooManyRequests()`             | 429  | `TOO_MANY_REQUESTS`     | Rate limiting                 |
+| `CommonErrors.internal()`                    | 500  | `INTERNAL_SERVER_ERROR` | Unexpected server error       |
+
+**Custom message with extra payload:**
+
+```typescript
+throw CommonErrors.badRequest('Custom error', {
+  data: { field: 'value' },
+});
+```
+
+**Validation errors with field details:**
+
+```typescript
+throw CommonErrors.validationFailed({
+  data: [{ field: 'email', key: 'isEmail', message: 'email must be a valid email' }],
+});
+```
+
+**Response shape** (handled by `HttpExceptionFilter`):
+
+```json
+{
+  "code": 404,
+  "statusCode": "NOT_FOUND",
+  "message": "Item not found",
+  "data": null,
+  "cause": null,
+  "timestamp": "2026-07-07T06:46:00.000Z",
+  "path": "/api/v1/items/123"
+}
+```
+
+> 💡 **Tip:** Unhandled `Error` instances are converted to a safe 500 response. Prefer `CommonErrors.internal()` when you need an explicit server error.
+
+### Custom Domain Errors
+
+Define module-specific errors with `createErrorFactory`:
+
+```typescript
+// apps/api/src/modules/user/user.errors.ts
+import { createErrorFactory } from '@libs/util';
+
+export const UserErrors = createErrorFactory({
+  emailTaken: {
+    code: 'EMAIL_TAKEN',
+    httpStatus: 409,
+    messageKey: 'message.errors.object_existed',
+  },
+});
+```
+
+```typescript
+import { UserErrors } from './user.errors';
+
+if (await this.users.existsByEmail(email)) {
+  throw UserErrors.emailTaken();
+}
+```
 
 ### i18n Files Location
 
