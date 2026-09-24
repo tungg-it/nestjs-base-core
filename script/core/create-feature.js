@@ -178,32 +178,45 @@ function addImportLine(content, importLine) {
   return importLine + '\n' + content;
 }
 
-function getFeatureServicesFromIndex(content) {
+function findFeaturesArrayRange(content) {
   const start = content.indexOf('export const features');
-  if (start === -1) return [];
-  const arrayStart = content.indexOf('[', start);
+  if (start === -1) return null;
+  const eq = content.indexOf('=', start);
+  if (eq === -1) return null;
+  const arrayStart = content.indexOf('[', eq);
+  if (arrayStart === -1) return null;
   const arrayEnd = findMatchingDelimiter(content, arrayStart, '[', ']');
-  if (arrayEnd === -1) return [];
-  return parseModuleArrayItems(content.slice(arrayStart + 1, arrayEnd));
+  if (arrayEnd === -1) return null;
+  let replaceEnd = arrayEnd + 1;
+  while (replaceEnd < content.length && /\s/.test(content[replaceEnd])) {
+    replaceEnd += 1;
+  }
+  if (content[replaceEnd] === ';') replaceEnd += 1;
+  return { start, arrayStart, arrayEnd, replaceEnd };
+}
+
+function getFeatureServicesFromIndex(content) {
+  const range = findFeaturesArrayRange(content);
+  if (!range) return [];
+  return parseModuleArrayItems(content.slice(range.arrayStart + 1, range.arrayEnd));
 }
 
 function formatFeaturesExport(items) {
   if (items.length <= 1) {
-    return `export const features = [${items[0] ?? ''}];`;
+    return `export const features: Provider[] = [${items[0] ?? ''}];`;
   }
-  return `export const features = [\n${items.map((item) => `  ${item},`).join('\n')}\n];`;
+  return `export const features: Provider[] = [\n${items.map((item) => `  ${item},`).join('\n')}\n];`;
 }
 
 function replaceFeaturesExport(content, items) {
-  const start = content.indexOf('export const features');
   const formatted = formatFeaturesExport(items);
-  if (start === -1) {
+  const range = findFeaturesArrayRange(content);
+  if (!range) {
     if (content.length > 0 && !content.endsWith('\n')) content += '\n';
     return `${content}\n${formatted}\n`;
   }
-  const end = content.indexOf(';', start);
-  const replaceEnd = end === -1 ? content.length : end + 1;
-  return content.slice(0, start) + formatted + content.slice(replaceEnd);
+  const before = content.slice(0, range.start).replace(/\s*$/, '\n\n');
+  return before + formatted + content.slice(range.replaceEnd);
 }
 
 function updateFeaturesIndex(filePath, opts) {
@@ -211,13 +224,20 @@ function updateFeaturesIndex(filePath, opts) {
   let content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
   content = stripFeaturesIndexHeader(content);
 
+  const providerImport = "import { Provider } from '@nestjs/common';";
+  if (!content.includes(providerImport)) {
+    content = `${providerImport}\n${content}`;
+  }
+
   const importLine = `import { ${serviceClassName} } from '${featureBase}.service';`;
   if (!content.includes(importLine)) {
     const firstExport = content.search(/^export /m);
     if (firstExport === -1) {
-      content = `${importLine}\n\n${content}`;
+      content = `${content.trimEnd()}\n${importLine}\n`;
     } else {
-      content = `${content.slice(0, firstExport)}${importLine}\n${content.slice(firstExport)}`;
+      // Keep service imports contiguous (no blank line between them).
+      const before = content.slice(0, firstExport).replace(/\s*$/, '\n');
+      content = `${before}${importLine}\n\n${content.slice(firstExport).replace(/^\s*/, '')}`;
     }
   }
 
@@ -228,7 +248,8 @@ function updateFeaturesIndex(filePath, opts) {
     if (content.includes(line)) continue;
     const featuresConstIdx = content.indexOf('export const features');
     if (featuresConstIdx !== -1) {
-      content = `${content.slice(0, featuresConstIdx)}${line}\n${content.slice(featuresConstIdx)}`;
+      const before = content.slice(0, featuresConstIdx).replace(/\s*$/, '\n');
+      content = `${before}${line}\n${content.slice(featuresConstIdx)}`;
     } else {
       if (content.length > 0 && !content.endsWith('\n')) content += '\n';
       content += `${line}\n`;
@@ -242,6 +263,9 @@ function updateFeaturesIndex(filePath, opts) {
   } else if (items.length === 0) {
     content = replaceFeaturesExport(content, [serviceClassName]);
   }
+
+  // Normalize legacy untyped `export const features =` to `Provider[]`.
+  content = content.replace(/export const features(\s*=)/, 'export const features: Provider[]$1');
 
   fs.writeFileSync(filePath, prependFeaturesIndexHeader(content), 'utf8');
   return fs.readFileSync(filePath, 'utf8');
@@ -286,33 +310,67 @@ function ensureModuleUsesFeaturesSpread(content, featureServices) {
     content = addImportLine(content, "import { features } from './features';");
   }
 
-  const decoratorStart = content.indexOf('@Module(');
-  assert(decoratorStart !== -1, 'Could not find @Module decorator');
-  const objectStart = content.indexOf('{', decoratorStart);
-  const objectEnd = findMatchingDelimiter(content, objectStart, '{', '}');
-  assert(objectEnd !== -1, 'Could not parse @Module object');
+  const apiMatch = content.match(/^([ \t]*)const\s+API\s*:\s*Provider\[\]\s*=\s*\[/m);
+  assert(apiMatch, 'Could not find const API: Provider[] in module');
 
-  const objectBody = content.slice(objectStart + 1, objectEnd);
-  const propertyMatch = objectBody.match(/^([ \t]*)providers\s*:\s*\[/m);
-  assert(propertyMatch, 'Could not find providers array in module');
-
-  const propertyStart = objectStart + 1 + propertyMatch.index;
-  const arrayStart = content.indexOf('[', propertyStart);
+  const arrayStart = apiMatch.index + apiMatch[0].length - 1;
   const arrayEnd = findMatchingDelimiter(content, arrayStart, '[', ']');
-  assert(arrayEnd !== -1, 'Could not parse providers array');
+  assert(arrayEnd !== -1, 'Could not parse API providers array');
 
   const arrayContent = content.slice(arrayStart + 1, arrayEnd);
   let items = parseModuleArrayItems(arrayContent).filter((item) => !featureServices.includes(item));
   items = items.filter((item) => item !== '...features');
   items.push('...features');
 
-  const propertyIndent = propertyMatch[1];
+  const propertyIndent = apiMatch[1];
   const inlineBody = items.join(', ');
   const itemIndent = `${propertyIndent}  `;
   const multilineBody = `\n${items.map((item) => `${itemIndent}${item},`).join('\n')}\n${propertyIndent}`;
-  const newArrayContent = `providers: [${inlineBody}]`.length <= 120 ? inlineBody : multilineBody;
+  const newArrayContent = `const API: Provider[] = [${inlineBody}]`.length <= 120 ? inlineBody : multilineBody;
 
-  return content.slice(0, arrayStart + 1) + newArrayContent + content.slice(arrayEnd);
+  content = content.slice(0, arrayStart + 1) + newArrayContent + content.slice(arrayEnd);
+
+  // Ensure role blocks also export features (synchronize.module pattern).
+  content = ensureExportsProvidersPushFeatures(content);
+
+  return content;
+}
+
+function ensureExportsProvidersPushFeatures(content) {
+  if (!content.includes('const exportsProviders')) {
+    content = content.replace(
+      /(const providers: Provider\[\] = [\s\S]*?;)/,
+      `$1\nconst exportsProviders: Provider[] = [];`,
+    );
+  }
+
+  const roleBlocks = [
+    ['isApi', 'API'],
+    ['isConsumer', 'CONSUMERS'],
+    ['isCron', 'CRON'],
+    ['isProjection', 'PROJECTION'],
+  ];
+
+  for (const [flag, role] of roleBlocks) {
+    // One-liner -> multi-line with exportsProviders
+    content = content.replace(
+      new RegExp(`if \\(${flag}\\) providers\\.push\\(\\.\\.\\.${role}\\);`),
+      `if (${flag}) {\n  providers.push(...${role});\n}`,
+    );
+
+    // Multi-line without exportsProviders.push(...features)
+    content = content.replace(
+      new RegExp(`if \\(${flag}\\) \\{\\s*providers\\.push\\(\\.\\.\\.${role}\\);\\s*\\}`, 'm'),
+      `if (${flag}) {\n  providers.push(...${role});\n}`,
+    );
+  }
+
+  // Ensure @Module exports exportsProviders
+  if (!/exports\s*:\s*exportsProviders/.test(content)) {
+    content = content.replace(/(@Module\(\{[\s\S]*?providers,)/, `$1\n  exports: exportsProviders,`);
+  }
+
+  return content;
 }
 
 function main() {

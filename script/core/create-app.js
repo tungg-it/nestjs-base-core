@@ -76,16 +76,11 @@ function main() {
   if (!appName) exitWithUsage('Missing <app-name>.');
 
   const safeName = appName.trim();
-  assert(
-    /^[a-z][a-z0-9-]*$/.test(safeName),
-    'App name must match ^[a-z][a-z0-9-]*$',
-  );
+  assert(/^[a-z][a-z0-9-]*$/.test(safeName), 'App name must match ^[a-z][a-z0-9-]*$');
 
   const newAppDir = path.join(repoRoot, 'apps', safeName);
   if (fs.existsSync(newAppDir)) {
-    console.error(
-      `${colors.red}❌ App already exists: apps/${safeName} (skipping creation)${colors.reset}`,
-    );
+    console.error(`${colors.red}❌ App already exists: apps/${safeName} (skipping creation)${colors.reset}`);
     process.exit(0);
   }
 
@@ -132,9 +127,7 @@ function main() {
       }
       writeJson(nestCliPath, nestCli);
     } catch (e) {
-      console.warn(
-        `${colors.red}❌ Warning: could not update nest-cli.json: ${e.message}${colors.reset}`,
-      );
+      console.warn(`${colors.red}❌ Warning: could not update nest-cli.json: ${e.message}${colors.reset}`);
     }
 
     // 5) tsconfig.json paths
@@ -149,15 +142,11 @@ function main() {
       }
       writeJson(tsconfigPath, rootTsCfg);
     } catch (e) {
-      console.warn(
-        `${colors.red}❌ Warning: could not update tsconfig.json: ${e.message}${colors.reset}`,
-      );
+      console.warn(`${colors.red}❌ Warning: could not update tsconfig.json: ${e.message}${colors.reset}`);
     }
 
     // 6) Success message
-    console.log(
-      `${colors.green}✅ Created app apps/${safeName}${colors.reset}`,
-    );
+    console.log(`${colors.green}✅ Created app apps/${safeName}${colors.reset}`);
     console.log('Next steps:');
     console.log(`- Start the app: pnpm dev ${safeName}`);
     console.log(`- Or build: pnpm build ${safeName}`);

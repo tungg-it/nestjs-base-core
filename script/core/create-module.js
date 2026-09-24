@@ -244,14 +244,37 @@ export class ${controllerClassName} {}
 `;
     // No repository stub: repositories live in `database/oracle/repositories/` and are provided +
     // exported once by the @Global PersistenceDatabaseModule (docs/adr/0007), so feature modules
-    // inject them with zero local wiring. `feat:gen` fills `providers` with `...features`.
-    const moduleTs = `import { Module } from '@nestjs/common';
+    // inject them with zero local wiring. `feat:gen` fills role arrays (API/CONSUMERS/…) with features.
+    const moduleTs = `import { Module, Provider, Type } from '@nestjs/common';
+import config from '@libs/core/config';
+
 import { ${controllerClassName} } from './api/${moduleDirName}.controller';
 
+const { isApi, isConsumer, isCron } = config();
+
+const API: Provider[] = [];
+const CONSUMERS: Provider[] = [];
+const CRON: Provider[] = [];
+
+const providers: Provider[] = [];
+const exportsProviders: Provider[] = [];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const controllers: Type<any>[] = [${controllerClassName}];
+
+if (isApi) {
+  providers.push(...API);
+}
+if (isConsumer) {
+  providers.push(...CONSUMERS);
+}
+if (isCron) {
+  providers.push(...CRON);
+}
+
 @Module({
-  imports: [],
-  controllers: [${controllerClassName}],
-  providers: [],
+  controllers: isApi ? controllers : [],
+  providers,
+  exports: exportsProviders,
 })
 export class ${moduleClassName} {}
 `;
