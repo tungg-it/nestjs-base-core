@@ -6,7 +6,7 @@ import { ExampleService2 } from '@libs/contracts/generated/example2/v1/example_p
 
 @Injectable()
 @RpcService(ExampleService2, { environments: ['development'] })
-export class Example2RpcHandler implements ServiceImpl<typeof ExampleService2> {
+export class Example2RpcHandler implements Partial<ServiceImpl<typeof ExampleService2>> {
   constructor(private readonly echoExample: GrpcServerEchoExampleService) {}
 
   echo: ServiceImpl<typeof ExampleService2>['echo'] = (request) => ({ text: this.echoExample.echo(request.text) });
