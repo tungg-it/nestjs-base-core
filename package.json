@@ -19,9 +19,16 @@
     "app:gen": "node script/core/create-app.js",
     "module:gen": "node script/core/create-module.js",
     "feat:gen": "node script/core/create-feature.js",
+    "proto:gen": "buf generate",
+    "proto:lint": "buf lint",
     "prepare": "husky"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "2.16.0",
+    "@bufbuild/protovalidate": "1.3.0",
+    "@connectrpc/connect": "2.2.0",
+    "@connectrpc/connect-node": "2.2.0",
+    "@connectrpc/validate": "0.2.0",
     "@fastify/middie": "^9.3.2",
     "@fastify/multipart": "^10.0.0",
     "@fastify/static": "^9.1.3",
@@ -31,6 +38,7 @@
     "@nestjs/core": "^11.1.6",
     "@nestjs/platform-fastify": "^11.1.6",
     "@nestjs/swagger": "^11.2.0",
+    "@opentelemetry/api": "1.9.1",
     "axios": "^1.12.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
@@ -41,6 +49,8 @@
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
+    "@bufbuild/buf": "1.73.0",
+    "@bufbuild/protoc-gen-es": "2.16.0",
     "@eslint/js": "^9.36.0",
     "@nestjs/cli": "^11.0.10",
     "@nestjs/schematics": "^11.0.7",
@@ -90,7 +100,10 @@
     ],
     "moduleNameMapper": {
       "^libs/core(|/.*)$": "<rootDir>/libs/core/src/$1",
-      "^libs/util(|/.*)$": "<rootDir>/libs/util/src/$1"
+      "^libs/util(|/.*)$": "<rootDir>/libs/util/src/$1",
+      "^@libs/core(|/.*)$": "<rootDir>/libs/core/src/$1",
+      "^@libs/util(|/.*)$": "<rootDir>/libs/util/src/$1",
+      "^@libs/contracts(|/.*)$": "<rootDir>/libs/contracts/src/$1"
     }
   },
   "packageManager": "pnpm@10.33.2",

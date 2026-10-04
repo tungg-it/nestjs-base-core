@@ -228,6 +228,7 @@ function main() {
     const classBaseName = toPascalCase(moduleRawName);
     const moduleClassName = `${classBaseName}Module`;
     const controllerClassName = `${classBaseName}Controller`;
+    const rpcHandlerClassName = `${classBaseName}RpcHandler`;
 
     const targetModuleDir = path.join(appDir, 'src', 'modules', moduleDirName);
     if (fs.existsSync(targetModuleDir)) {
@@ -242,6 +243,11 @@ function main() {
 @Controller('${moduleDirName}')
 export class ${controllerClassName} {}
 `;
+    const rpcHandlerTs = `import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class ${rpcHandlerClassName} {}
+`;
     // No repository stub: repositories live in `database/oracle/repositories/` and are provided +
     // exported once by the @Global PersistenceDatabaseModule (docs/adr/0007), so feature modules
     // inject them with zero local wiring. `feat:gen` fills role arrays (API/CONSUMERS/…) with features.
@@ -249,6 +255,7 @@ export class ${controllerClassName} {}
 import config from '@libs/core/config';
 
 import { ${controllerClassName} } from './api/${moduleDirName}.controller';
+import { ${rpcHandlerClassName} } from './rpc/${moduleDirName}.rpc-handler';
 
 const { isApi, isConsumer, isCron } = config();
 
@@ -256,7 +263,7 @@ const API: Provider[] = [];
 const CONSUMERS: Provider[] = [];
 const CRON: Provider[] = [];
 
-const providers: Provider[] = [];
+const providers: Provider[] = [${rpcHandlerClassName}];
 const exportsProviders: Provider[] = [];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const controllers: Type<any>[] = [${controllerClassName}];
@@ -283,7 +290,9 @@ export class ${moduleClassName} {}
     // folder (gRPC handlers go under `rpc/`); business logic stays transport-neutral in features/.
     // See docs/adr/0014.
     ensureDirSync(path.join(targetModuleDir, 'api'));
+    ensureDirSync(path.join(targetModuleDir, 'rpc'));
     writeFileIfNotExists(path.join(targetModuleDir, 'api', `${moduleDirName}.controller.ts`), controllerTs);
+    writeFileIfNotExists(path.join(targetModuleDir, 'rpc', `${moduleDirName}.rpc-handler.ts`), rpcHandlerTs);
     writeFileIfNotExists(path.join(targetModuleDir, `${moduleDirName}.module.ts`), moduleTs);
 
     // Update app.module.ts

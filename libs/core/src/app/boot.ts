@@ -11,7 +11,7 @@ import { convertToCamelCase } from '@libs/util';
 import { createValidationPipe } from '../validation/pipes/create-validation-pipe';
 import { Logger as NestPinoLogger } from 'nestjs-pino';
 import { RequestIdMiddleware } from '../middleware/request-id.middleware';
-import { AppLogger } from '../logger/logger.service';
+import { AppLogger } from '@libs/core';
 import { wrapLoggerSkipNestFramework } from '../logger/nest-quiet-logger';
 
 export interface AppOptions {
@@ -31,7 +31,6 @@ export const startApp = async (AppModule: Type<unknown>, options: AppOptions) =>
     }),
     {
       bufferLogs: true,
-      logger: false,
     },
   );
 

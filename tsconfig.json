@@ -22,6 +22,8 @@
       "@apps/api/*": ["apps/api/src/*"],
       "@libs/core": ["libs/core/src"],
       "@libs/core/*": ["libs/core/src/*"],
+      "@libs/contracts": ["libs/contracts/src"],
+      "@libs/contracts/*": ["libs/contracts/src/*"],
       "@libs/util": ["libs/util/src"],
       "@libs/util/*": ["libs/util/src/*"]
     }

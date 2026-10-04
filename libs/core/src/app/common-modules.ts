@@ -1,12 +1,7 @@
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import config from '../config';
-import {
-  AcceptLanguageResolver,
-  HeaderResolver,
-  I18nModule,
-  QueryResolver,
-} from 'nestjs-i18n';
+import { AcceptLanguageResolver, HeaderResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { AppLoggerModule } from '../logger';
@@ -16,9 +11,7 @@ export interface CommonModulesOptions {
   appName: string;
 }
 
-export const commonModules = (
-  options: CommonModulesOptions,
-): (DynamicModule | Promise<DynamicModule>)[] => {
+export const commonModules = (options: CommonModulesOptions): (DynamicModule | Promise<DynamicModule>)[] => {
   const { appName } = options;
 
   return [
@@ -47,11 +40,7 @@ export const commonModules = (
         })(),
         watch: process.env.NODE_ENV !== 'production',
       },
-      resolvers: [
-        { use: QueryResolver, options: ['lang'] },
-        AcceptLanguageResolver,
-        new HeaderResolver(['x-lang']),
-      ],
+      resolvers: [{ use: QueryResolver, options: ['lang'] }, AcceptLanguageResolver, new HeaderResolver(['x-lang'])],
     }),
   ];
 };

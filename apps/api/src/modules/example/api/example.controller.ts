@@ -1,14 +1,18 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ParseUuidV7Pipe } from '@libs/core';
 import { CreateExampleDto } from '../features/create-example/create-example.dto';
 import { CreateExampleService } from '../features/create-example/create-example.service';
 import { CommonErrors } from '@libs/util';
+import { GrpcClientEchoExampleService } from '../features/grpc-client-echo-example/grpc-client-echo-example.service';
 
 @ApiTags('example')
 @Controller()
 export class ExampleController {
-  constructor(private readonly createExample: CreateExampleService) {}
+  constructor(
+    private readonly createExample: CreateExampleService,
+    private readonly echoExample: GrpcClientEchoExampleService,
+  ) {}
 
   /**
    * Body validation: 422 VALIDATION_FAILED với `{ field, key, message }[]`.
@@ -40,5 +44,17 @@ export class ExampleController {
   @Get('/example/custom-error')
   customError() {
     throw CommonErrors.badRequest('Custom error', { data: { field: 'value' } });
+  }
+
+  @ApiOperation({ summary: 'Demo API calling the AI app through internal gRPC' })
+  @Get('/example/ai-echo')
+  async aiEcho(@Query('text') text: string, @Headers('x-request-id') requestId?: string) {
+    return { text: await this.echoExample.echo(text, requestId) };
+  }
+
+  @ApiOperation({ summary: 'Demo API calling the AI app through internal gRPC' })
+  @Get('/example/ai-echo2')
+  async aiEcho2(@Query('text') text: string, @Headers('x-request-id') requestId?: string) {
+    return { text: await this.echoExample.echo2(text, requestId) };
   }
 }

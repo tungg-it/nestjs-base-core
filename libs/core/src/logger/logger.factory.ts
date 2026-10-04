@@ -2,6 +2,8 @@ import { Params } from 'nestjs-pino';
 import { IncomingMessage, ServerResponse } from 'http';
 import { randomUUID } from 'crypto';
 import os from 'os';
+import { getHttpResponseData } from './http-response-data';
+import { getHttpRequestData } from './http-request-data';
 
 export interface CreatePinoConfigOptions {
   appName: string;
@@ -11,6 +13,25 @@ export interface CreatePinoConfigOptions {
 }
 
 type HttpIncomingMessage = IncomingMessage & { originalUrl?: string };
+type GrpcRequestLog = { requestId: string; method: string; url: string; body?: unknown };
+type GrpcResponseLog = { grpcStatusCode: number };
+
+export function serializeRequest(req: IncomingMessage | GrpcRequestLog, includeData = true) {
+  if (!('headers' in req)) return req;
+  const body = includeData ? getHttpRequestData(req) : undefined;
+  return {
+    requestId: req.headers['x-request-id'],
+    method: req.method,
+    url: requestUrl(req),
+    ...(body === undefined ? {} : { body }),
+  };
+}
+
+export function serializeResponse(res: ServerResponse | GrpcResponseLog, includeData = true) {
+  if ('grpcStatusCode' in res) return res;
+  const data = includeData ? getHttpResponseData(res) : undefined;
+  return { statusCode: res.statusCode, ...(data === undefined ? {} : { data }) };
+}
 
 export function canResolvePinoPretty(resolve: (id: string) => string = require.resolve): boolean {
   try {
@@ -50,17 +71,21 @@ export const createPinoConfig = (options: CreatePinoConfigOptions): Params => {
 
       genReqId: (req) => req.headers['x-request-id'] ?? randomUUID(),
 
+      quietReqLogger: true,
       wrapSerializers: false,
       serializers: {
-        req: (req: IncomingMessage) => ({
-          requestId: req.headers['x-request-id'],
-          method: req.method,
-          url: requestUrl(req),
-        }),
-        res: (res: ServerResponse) => ({
-          statusCode: res.statusCode,
-        }),
+        req: (req: IncomingMessage | GrpcRequestLog) => serializeRequest(req, !isProduction),
+        res: (res: ServerResponse | GrpcResponseLog) => serializeResponse(res, !isProduction),
       },
+
+      customSuccessObject: (req, _res, value: Record<string, unknown>) => ({
+        ...value,
+        req: serializeRequest(req, !isProduction),
+      }),
+      customErrorObject: (req, _res, _error, value: Record<string, unknown>) => ({
+        ...value,
+        req: serializeRequest(req, !isProduction),
+      }),
 
       transport: usePretty
         ? {

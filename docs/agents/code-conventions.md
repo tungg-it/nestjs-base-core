@@ -9,6 +9,7 @@ Format TypeScript with two spaces, single quotes, trailing commas, and a 120-cha
 ## Workspace structure
 
 - Use **@apps/api/** for API-local imports, **@libs/core** for platform services, and **@libs/util** for shared primitives.
+- Use **@libs/contracts** for generated protobuf descriptors.
 - Keep reusable exports in the existing barrel files. Do not import one application from another or import application code into a shared library.
 - Keep HTTP transport adapters in **apps/<app>/src/modules/<module>/api/**. Keep feature services, DTOs, and mapping functions in the module's **features/** tree.
 - Use the local module's **features** provider array to wire generated feature services. **features/index.ts** is generator-owned; regenerate it with **pnpm feat:gen <app> <module> <feature>** instead of manually editing it.
@@ -27,6 +28,15 @@ Format TypeScript with two spaces, single quotes, trailing commas, and a 120-cha
 - New shared translated messages belong in both English and Vietnamese catalogues. Reuse the built-in constraint translation mapping before writing a per-field literal message.
 - Add configuration coherently: type in **AppConfig**, default in the configuration factory, and documented value in **.env.example**.
 - Inject **AppLogger** and log a concise message plus structured metadata or an Error. Preserve the request-ID flow; do not introduce ad-hoc console logging outside the process-entry failure handler.
+
+## Protobuf and gRPC
+
+- Edit contracts in **proto/**, then run **pnpm proto:lint** and **pnpm proto:gen**. Never hand-edit **libs/contracts/src/generated/**.
+- Implement RPC providers as singleton classes decorated with **@RpcService** and type them with **ServiceImpl<typeof Descriptor>**.
+- Register shared client resources through **GrpcClientModule**, inject them with **InjectGrpcClient**, and create typed
+  clients with **GrpcClientResource.clientFor**. Keep each typed client on its consumer instead of constructing
+  feature-local transports.
+- Follow the security, compatibility, retry, deadline, TLS, lifecycle, and test requirements in **docs/agents/grpc-rules.md**.
 
 ## Change boundaries
 

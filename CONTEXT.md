@@ -4,6 +4,8 @@
 
 This is a reusable NestJS platform base, not a product-specific service. It establishes the shared runtime contracts that future applications and modules inherit: Fastify bootstrapping, API versioning, response and error envelopes, validation, i18n, logging, configuration, and feature scaffolding.
 
+The platform also provides typed gRPC infrastructure and protobuf generation for applications that need an RPC transport.
+
 The only application is **apps/api**. Its **example** module is an executable reference for DTO transformation, validation, UUID v7 parameters, error handling, and Swagger decorators. It is not a business domain to extend unless a task explicitly says so.
 
 ## System map
@@ -18,12 +20,17 @@ libs/core                shared NestJS runtime and cross-cutting contracts
   ├── i18n               English and Vietnamese message catalogs
   ├── logger             Pino integration and AppLogger
   ├── middleware         request ID and optional Morgan middleware
+  ├── grpc               ConnectRPC server/client, health, errors, and telemetry
   └── validation         decorators, pipes, and translated constraint messages
+libs/contracts           generated protobuf TypeScript descriptors
 libs/util                shared errors, constants, helpers, and HTTP message names
+proto                    source protobuf contracts
 script/core              app, module, and feature generators
 ```
 
 Workspace imports flow from applications to **@libs/core** and **@libs/util**, and from core to util. Shared libraries must not import application code. Expose reusable library APIs through their existing barrel files; consumers use the configured aliases rather than relative paths across workspace boundaries.
+
+Generated protobuf consumers may additionally import descriptors through **@libs/contracts**.
 
 ## HTTP contract
 
@@ -48,6 +55,14 @@ Localized output resolves through query **lang**, then **Accept-Language**, then
 Configuration is loaded once through **ConfigModule** and **libs/core/src/config**. A new setting must have an **AppConfig** type entry, a default in the configuration factory, and an example in **.env.example**.
 
 Logging is Pino-backed and includes a request ID. Inject and use **AppLogger** for application logs; it accepts a message plus structured metadata or an Error. Health-check traffic and Nest framework boot noise are intentionally quiet.
+
+## gRPC contract
+
+Protobuf files in **proto/** are the source of truth. Buf lints them and protoc-gen-es writes typed descriptors to **libs/contracts/src/generated/**. Generated files are never edited directly.
+
+Nest owns dependency injection and lifecycle while ConnectRPC owns the HTTP/2 gRPC transport. **GrpcServerModule** discovers singleton providers decorated with **@RpcService**, validates complete service implementations, exposes standard gRPC health checks, enforces message/deadline limits, emits structured telemetry, and drains sessions on shutdown. **GrpcClientModule** provides typed clients by descriptor, propagates only allowlisted metadata, applies deadlines, retries explicitly idempotent calls only, and closes its shared HTTP/2 session through Nest shutdown hooks.
+
+Server configuration defaults to **grpc.<appName>** and client configuration to **grpc.<name>**. Production server and client endpoints require TLS. Plaintext is a local/test option only. Detailed invariants live in **docs/agents/grpc-rules.md**.
 
 ## Current boundaries
 

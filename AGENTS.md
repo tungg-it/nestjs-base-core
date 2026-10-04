@@ -6,6 +6,7 @@ This repository is a reusable NestJS platform base. The current API example demo
 
 - **Core contracts:** Before changing bootstrap, HTTP responses or errors, configuration, logging, validation, i18n, or workspace dependency boundaries, read [CONTEXT.md](CONTEXT.md).
 - **Implementation conventions:** Before adding or editing TypeScript, NestJS modules/features, DTOs, or code generators, read [docs/agents/code-conventions.md](docs/agents/code-conventions.md).
+- **gRPC rules:** Before changing protobuf, gRPC server/client infrastructure, RPC handlers, health checks, metadata, retries, deadlines, or TLS, read [docs/agents/grpc-rules.md](docs/agents/grpc-rules.md).
 - **Architecture decisions:** Before a structural change, read any relevant record in **docs/adr/**. Create an ADR only when a durable architectural decision is made.
 
 ## Agent skills
@@ -21,3 +22,7 @@ Use the default canonical triage labels. See [docs/agents/triage-labels.md](docs
 ### Domain docs
 
 This repository uses single-context domain documentation. See [docs/agents/domain.md](docs/agents/domain.md).
+
+## gRPC verification
+
+For gRPC changes, run `pnpm proto:lint`, `pnpm proto:gen`, relevant tests, `pnpm lint`, and `pnpm build`. Integration tests open a temporary loopback HTTP/2 listener.

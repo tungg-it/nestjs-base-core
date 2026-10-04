@@ -1,6 +1,7 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Logger } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { Code, ConnectError } from '@connectrpc/connect';
 import { I18nContext } from 'nestjs-i18n';
 import { AppError } from '@libs/util';
 
@@ -33,6 +34,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<object>();
     const i18n = I18nContext.current(host);
     const environment = this.config?.get<string>('environment');
+
+    if (
+      exception instanceof ConnectError &&
+      (exception.code === Code.Unavailable || exception.code === Code.Unimplemented)
+    ) {
+      const status = 503;
+      this.logServerError(status, exception.message, exception, request);
+      httpAdapter.reply(response, this.buildServerErrorBody(status, request, i18n), status);
+      return;
+    }
 
     if (!(exception instanceof HttpException)) {
       this.logServerError(

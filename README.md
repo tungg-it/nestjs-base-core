@@ -22,6 +22,7 @@
 - [Docker](#-docker)
 - [Code Generation](#-code-generation)
 - [Validation \& i18n](#-validation--i18n)
+- [gRPC](#-grpc)
 - [Author](#-author)
 
 ---
@@ -30,6 +31,7 @@
 
 - 🏗️ **Monorepo Architecture** - Organized structure with shared libraries
 - 🌐 **REST API** - POST-based endpoints with Swagger documentation
+- 🔌 **Typed gRPC** - ConnectRPC over HTTP/2 with protobuf contracts, health checks, TLS, deadlines and telemetry
 - 🌍 **Internationalization (i18n)** - Multi-language support (EN/VI)
 - ✅ **Validation** - Built-in validation with translated error messages
 - 🐳 **Docker Ready** - Production-ready Docker configuration
@@ -48,6 +50,8 @@
 | [pnpm](https://pnpm.io/)                      | Fast, disk space efficient package manager |
 | [Docker](https://www.docker.com/)             | Containerization platform                  |
 | [Swagger](https://swagger.io/)                | API documentation                          |
+| [ConnectRPC](https://connectrpc.com/)         | Typed gRPC server and client transport     |
+| [Buf](https://buf.build/)                     | Protobuf linting and code generation       |
 
 ---
 
@@ -67,7 +71,9 @@ nestjs-base-core/
 │   │       ├── 📂 exception/   # Exception filters
 │   │       ├── 📂 i18n/        # Internationalization files
 │   │       └── 📂 middleware/  # Custom middlewares
+│   ├── 📂 contracts/           # Generated protobuf contracts
 │   └── 📂 util/                # Common utilities & helpers
+├── 📂 proto/                   # Source .proto contracts
 ├── 📂 script/                  # Code generation scripts
 ├── 📄 docker-compose.yaml      # Docker Compose configuration
 ├── 📄 nest-cli.json            # NestJS CLI configuration
@@ -241,6 +247,121 @@ export class CreateUserDto {
   password: string;
 }
 ```
+
+---
+
+## 🔌 gRPC
+
+The core library provides a native HTTP/2 gRPC server and typed clients through ConnectRPC. It includes Nest provider discovery, protobuf validation, the standard `grpc.health.v1.Health` service, request IDs, OpenTelemetry spans/metrics, bounded deadlines, safe retries for explicitly idempotent methods, TLS/mTLS and graceful shutdown.
+
+### Generate contracts
+
+Add schemas below `proto/<domain>/v1/`, then lint and generate TypeScript descriptors:
+
+```bash
+pnpm proto:lint
+pnpm proto:gen
+```
+
+Generated files are written to `libs/contracts/src/generated`. Do not edit them by hand. The repository includes `proto/example/v1/example.proto` as a minimal example.
+
+### Implement and register a server
+
+The handler must be a singleton Nest provider and must implement every RPC in its service descriptor.
+
+```typescript
+import { Injectable, Module } from '@nestjs/common';
+import type { ServiceImpl } from '@connectrpc/connect';
+import { GrpcServerModule, RpcService } from '@libs/core';
+import { ExampleService } from '@libs/contracts/generated/example/v1/example_pb';
+
+@Injectable()
+@RpcService(ExampleService)
+export class ExampleRpcHandler implements ServiceImpl<typeof ExampleService> {
+  echo: ServiceImpl<typeof ExampleService>['echo'] = (request) => ({
+    text: request.text,
+  });
+}
+
+@Module({
+  imports: [GrpcServerModule.register('api')],
+  providers: [ExampleRpcHandler],
+})
+export class ExampleGrpcModule {}
+```
+
+Import `ExampleGrpcModule` from the application module. `GrpcServerModule.register('api')` reads `grpc.api`, which is populated by the included environment configuration:
+
+```dotenv
+GRPC_ENABLED=true
+GRPC_HOST=0.0.0.0
+GRPC_PORT=50051
+GRPC_PLAINTEXT=true
+```
+
+Plaintext is rejected in production. Set `GRPC_PLAINTEXT=false` and configure `GRPC_TLS_CERT_PATH`, `GRPC_TLS_KEY_PATH`, and optionally `GRPC_TLS_CA_PATH` for TLS/mTLS.
+
+Limit a handler to selected environments when it is only intended for development or testing:
+
+```typescript
+@RpcService(ExampleService, { environments: ['development', 'test'] })
+```
+
+### Register and inject a typed client
+
+Add a target to a configuration factory:
+
+```typescript
+export default () => ({
+  grpc: {
+    example: {
+      endpoint: process.env.EXAMPLE_GRPC_ENDPOINT,
+      plaintext: process.env.NODE_ENV !== 'production',
+      deadlineMs: 5_000,
+      idempotentMethods: ['Echo'],
+      retry: { maxAttempts: 3, initialDelayMs: 50 },
+    },
+  },
+});
+```
+
+Register the target connection, inject its shared resource, and create the typed client once in the consumer:
+
+```typescript
+import { Injectable, Module } from '@nestjs/common';
+import type { Client } from '@connectrpc/connect';
+import { GrpcClientModule, GrpcClientResource, InjectGrpcClient } from '@libs/core';
+import { ExampleService } from '@libs/contracts/generated/example/v1/example_pb';
+
+@Injectable()
+export class ExampleGateway {
+  private readonly client: Client<typeof ExampleService>;
+
+  constructor(@InjectGrpcClient('example') grpc: GrpcClientResource) {
+    this.client = grpc.clientFor(ExampleService);
+  }
+
+  echo(text: string) {
+    return this.client.echo({ text }, { headers: { 'x-request-id': crypto.randomUUID() } });
+  }
+}
+
+@Module({
+  imports: [GrpcClientModule.register('example')],
+  providers: [ExampleGateway],
+})
+export class ExampleClientModule {}
+```
+
+Only allowlisted metadata is propagated. `authorization` must additionally be enabled per RPC with `authorizationMethods`; retries occur only for methods listed in `idempotentMethods`, only for `UNAVAILABLE`, and never more than three attempts.
+
+### Health and shutdown
+
+Every enabled server exposes `grpc.health.v1.Health/Check` and `/Watch`. Registered services become `SERVING` after startup and transition to `NOT_SERVING` during shutdown. Keep `app.enableShutdownHooks()` enabled so clients close HTTP/2 sessions and servers honor `shutdownGraceMs`.
+
+---
+
+## 🌍 Validation & i18n examples
 
 ### Controller Example
 
